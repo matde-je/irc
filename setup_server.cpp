@@ -29,7 +29,7 @@ class Server {
 
     public :
         int port;
-        int ser_socket_fd;
+        int socketfd;
         static bool signal;
         std::vector<Client> clients;
         std::vector<struct pollfd> fds; //pollfd is used in poll() to monitor fds (sockets) for events
@@ -60,29 +60,33 @@ void Server::signal_handler(int signum) {
 
 void Server::loop() {
     while (signal == false) {
-        if (poll(&fds[0], ) == -1)
+        if (poll(&fds[0], fds.size(), -1) == -1 && signal == false) //block indefinitely until an event occurs 
             {std::cerr << "poll() failed.\n"; return;}
-        
-    }
+        for (int i = 0; i < (int)fds.size(); i++) {
+            if (fds[i].revents & POLLIN) { //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
+                if (fds[i].fd == socketfd) //POLLIN on the server socket file descriptor indicates that there is a new incoming connection, not new data
+
+                else {}
+            }}}
     close_fd();
 }
 
 void Server::init_socket() {
-    int	s = socket(AF_INET, SOCK_STREAM, 0); //create server socket
-	if (s == -1) {std::cerr << "Creation of socket failed.\n"; return;}
+    socketfd = socket(AF_INET, SOCK_STREAM, 0); //create server socket
+	if (socketfd == -1) {std::cerr << "Creation of socket failed.\n"; return;}
     struct sockaddr_in	sin;
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = INADDR_ANY;
     sin.sin_port = htons(port);
     int en = 1;
-    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1) //allow the server to bind to the same address even if it is currently in use by another socket
+    if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1) //allow the server to bind to the same address even if it is currently in use by another socket
 		{std::cerr << "Reuse address of socket failed.\n"; return;}
-	if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) //non-blocking socket
+	if (fcntl(socketfd, F_SETFL, O_NONBLOCK) == -1) //non-blocking socket
 		{std::cerr << "Non blocking socket failed.\n"; return;}
-    if (bind(s, (struct sockaddr*)&sin, sizeof(sin)) == -1) {std::cerr << "Binding failed.\n"; return;}
-    if (listen(s, SOMAXCONN) == -1) {std::cerr << "Binding failed.\n"; return;}
+    if (bind(socketfd, (struct sockaddr*)&sin, sizeof(sin)) == -1) {std::cerr << "Binding failed.\n"; return;}
+    if (listen(socketfd, SOMAXCONN) == -1) {std::cerr << "Binding failed.\n"; return;}
     struct pollfd poll; 
-    poll.fd = s; 
+    poll.fd = socketfd; 
 	poll.events = POLLIN; //POLLIN for reading data
 	poll.revents = 0;
 	fds.push_back(poll); //add server socket to pollfd
