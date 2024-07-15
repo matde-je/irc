@@ -16,7 +16,7 @@ void			srv_create(t_env *e, int port)
   sin.sin_addr.s_addr = INADDR_ANY;
   sin.sin_port = htons(port);
   X(-1, bind(s, (struct sockaddr*)&sin, sizeof(sin)), "bind");
-  X(-1, listen(s, 42), "listen");
-  e->fds[s].type = FD_SERV;
-  e->fds[s].fct_read = srv_accept;
+  X(-1, listen(s, 42), "listen"); //42 is the length queue for number of connections
+  e->fds[s].type = FD_SERV; //server socket == 1 (macro)
+  e->fds[s].fct_read = srv_accept; //(this is a function) server socket is ready to accept a new incoming connection
 }

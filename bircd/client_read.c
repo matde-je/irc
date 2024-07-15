@@ -23,7 +23,7 @@ void	client_read(t_env *e, int cs)
 	{
 	  if ((e->fds[i].type == FD_CLIENT) &&
 	      (i != cs))
-	    send(i, e->fds[cs].buf_read, r, 0);
+	    send(i, e->fds[cs].buf_read, r, 0); //send the received data to the other client socket
 	  i++;
 	}
     }
