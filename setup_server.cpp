@@ -41,6 +41,8 @@ class Server {
         ~Server();
 };
 
+bool Server::signal = false;
+
 Server::~Server() {}
 Server::Server() {}
 
@@ -64,10 +66,8 @@ void Server::close_fd() {
         std::cout << "Client " << clients[i].fd << " disconnected" << std::endl;
         close(clients[i].fd);
     }
-    if (socketfd != -1) {
-        std::cout << "Server " << socketfd << " disconnected" << std::endl;
-        close(socketfd);
-    }
+    std::cout << "Server " << socketfd << " disconnected" << std::endl;
+    close(socketfd);
 }
 
 
@@ -101,20 +101,20 @@ void Server::new_data(int fd) {
     if (r <= 0) {
         close(fd);
         clear_client(fd);
-        std::cout << "client " << fd << "gone away\n";
+        std::cout << "Client " << fd << ": went away\n";
     }
     else {
         buf[r] = '\0';
         std::cout << "Client " << fd << ": " << buf << std::endl;
         for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) 
-            if ((*it).fd != fd) //Don't send data back to the original client
+            if ((*it).fd != fd) //don't send data back to the original client
                 send((*it).fd, buf, r, 0);
 }}
 
 
 void Server::loop() {
-    while (signal == false) {
-        if (poll(&fds[0], fds.size(), -1) == -1 && signal == false) //block indefinitely until an event occurs 
+    while (Server::signal == false) {
+        if (poll(&fds[0], fds.size(), -1) == -1 && Server::signal == false) //block indefinitely until an event occurs 
             {std::cerr << "poll() failed.\n"; return;}
         for (int i = 0; i < (int)fds.size(); i++) {
             if (fds[i].revents & POLLIN) { //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
@@ -155,7 +155,7 @@ void Server::init_socket() {
 void Server::signal_handler(int signum) {
 	(void)signum;
 	std::cout << std::endl << "Signal Received" << std::endl;
-	signal = true;
+	Server::signal = true;
 }
 
 
@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
     if (argc != 2) {std::cerr << "Invalid number of arguments.\n"; return 1;}
     char* endptr;
     long num = strtol(argv[1], &endptr, 10);
-    if (endptr == argv[1]|| num > 65535 || num < 1024) {std::cerr << "Error: invalid port.\n"; return 1;}
+    if (endptr == argv[1]|| num > 65535 || num < 1024) {std::cerr << "Invalid port.\n"; return 1;}
     Server server;
     server.port = atoi(argv[1]);
 
@@ -172,5 +172,4 @@ int main(int argc, char **argv) {
     server.init_socket();
 	server.loop();
 	std::cout << "Server closed." << std::endl;
-    server.close_fd();
 }
