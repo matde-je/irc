@@ -16,17 +16,12 @@
 #include <csignal> 
 
 class Client {
-    private :
-
-
     public :
         Client();
         ~Client();
 };
 
 class Server {
-    private :
-
     public :
         int port;
         int socketfd;
@@ -34,6 +29,8 @@ class Server {
         std::vector<Client> clients;
         std::vector<struct pollfd> fds; //pollfd is used in poll() to monitor fds (sockets) for events
         void loop();
+        void new_client();
+        void new_data(int fd);
         void close_fd();
         void init_socket();
         static void signal_handler(int signum);
@@ -52,6 +49,14 @@ void Server::close_fd() {
 
 }
 
+void Server::new_client() {
+
+}
+
+void Server::new_data(int fd) {
+
+}
+
 void Server::signal_handler(int signum) {
 	(void)signum;
 	std::cout << std::endl << "Signal Received" << std::endl;
@@ -65,8 +70,8 @@ void Server::loop() {
         for (int i = 0; i < (int)fds.size(); i++) {
             if (fds[i].revents & POLLIN) { //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
                 if (fds[i].fd == socketfd) //POLLIN on the server socket file descriptor indicates that there is a new incoming connection, not new data
-
-                else {}
+                    new_client();
+                else {new_data(fds[i].fd);}
             }}}
     close_fd();
 }
