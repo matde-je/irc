@@ -19,6 +19,8 @@ class Client {
     public :
         Client();
         ~Client();
+        int fd;
+        std::string ip;
 };
 
 class Server {
@@ -30,13 +32,13 @@ class Server {
         std::vector<struct pollfd> fds; //pollfd is used in poll() to monitor fds (sockets) for events
         void loop();
         void new_client();
+        void clear_client(int fd);
         void new_data(int fd);
         void close_fd();
         void init_socket();
         static void signal_handler(int signum);
         Server();
         ~Server();
-
 };
 
 Server::~Server() {}
@@ -45,23 +47,70 @@ Server::Server() {}
 Client::~Client() {}
 Client::Client() {}
 
+void Server::clear_client(int fd) {
+    for (int i = 0; i < clients.size(); i++) {
+        if (clients[i].fd == fd)
+            {clients.erase(clients.begin() + i); break ;}
+    }
+    for (int i = 0; i < fds.size(); i++) {
+        if (fds[i].fd == fd)
+            {fds.erase(fds.begin() + i); break ;}
+    }
+}
+
+//If you close the file descriptor via the client, you do not need to close it again in fds vector
 void Server::close_fd() {
-
+    for (int i = 0; i < clients.size(); i++) {
+        std::cout << "Client " << clients[i].fd << " disconnected" << std::endl;
+        close(clients[i].fd);
+    }
+    if (socketfd != -1) {
+        std::cout << "Server " << socketfd << " disconnected" << std::endl;
+        close(socketfd);
+    }
 }
 
+
+
+//client also has a socket (fd)
 void Server::new_client() {
+    struct sockaddr_in	csin;
+    socklen_t csin_len = sizeof(csin);
+    int fd = accept(socketfd, (struct sockaddr*)&csin, &csin_len);
+    if (fd == -1) {std::cerr << "Accept failed.\n"; return;}
+    if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) //non-blocking socket
+		{std::cerr << "Non-blocking failed" << std::endl; return;}
+    std::cout << "New client " << fd <<  " from " << inet_ntoa(csin.sin_addr) << ": " << ntohs(csin.sin_port) << std::endl;
 
+    struct pollfd poll; 
+    poll.fd = fd; 
+	poll.events = POLLIN; //POLLIN for reading data
+	poll.revents = 0;
+
+    Client client;
+    client.fd = fd;
+    client.ip = inet_ntoa(csin.sin_addr);
+    clients.push_back(client);
+	fds.push_back(poll);
 }
+
 
 void Server::new_data(int fd) {
+    char buf[4097];
+    int r = recv(fd, buf, 4096, 0);
+    if (r <= 0) {
+        close(fd);
+        clear_client(fd);
+        std::cout << "client " << fd << "gone away\n";
+    }
+    else {
+        buf[r] = '\0';
+        std::cout << "Client " << fd << ": " << buf << std::endl;
+        for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) 
+            if ((*it).fd != fd) //Don't send data back to the original client
+                send((*it).fd, buf, r, 0);
+}}
 
-}
-
-void Server::signal_handler(int signum) {
-	(void)signum;
-	std::cout << std::endl << "Signal Received" << std::endl;
-	signal = true;
-}
 
 void Server::loop() {
     while (signal == false) {
@@ -76,7 +125,9 @@ void Server::loop() {
     close_fd();
 }
 
+
 void Server::init_socket() {
+
     socketfd = socket(AF_INET, SOCK_STREAM, 0); //create server socket
 	if (socketfd == -1) {std::cerr << "Creation of socket failed.\n"; return;}
     struct sockaddr_in	sin;
@@ -84,12 +135,14 @@ void Server::init_socket() {
     sin.sin_addr.s_addr = INADDR_ANY;
     sin.sin_port = htons(port);
     int en = 1;
+
     if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1) //allow the server to bind to the same address even if it is currently in use by another socket
 		{std::cerr << "Reuse address of socket failed.\n"; return;}
 	if (fcntl(socketfd, F_SETFL, O_NONBLOCK) == -1) //non-blocking socket
 		{std::cerr << "Non blocking socket failed.\n"; return;}
     if (bind(socketfd, (struct sockaddr*)&sin, sizeof(sin)) == -1) {std::cerr << "Binding failed.\n"; return;}
     if (listen(socketfd, SOMAXCONN) == -1) {std::cerr << "Binding failed.\n"; return;}
+
     struct pollfd poll; 
     poll.fd = socketfd; 
 	poll.events = POLLIN; //POLLIN for reading data
@@ -99,6 +152,13 @@ void Server::init_socket() {
 
 
 
+void Server::signal_handler(int signum) {
+	(void)signum;
+	std::cout << std::endl << "Signal Received" << std::endl;
+	signal = true;
+}
+
+
 int main(int argc, char **argv) {
     if (argc != 2) {std::cerr << "Invalid number of arguments.\n"; return 1;}
     char* endptr;
@@ -106,6 +166,7 @@ int main(int argc, char **argv) {
     if (endptr == argv[1]|| num > 65535 || num < 1024) {std::cerr << "Error: invalid port.\n"; return 1;}
     Server server;
     server.port = atoi(argv[1]);
+
     signal(SIGINT, Server::signal_handler);
     signal(SIGQUIT, Server::signal_handler); //ctrl + "\""
     server.init_socket();
