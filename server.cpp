@@ -1,53 +1,15 @@
-#include <fcntl.h>
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <climits>
-#include <algorithm>
-#include <cstdlib>
-
-#include <vector> 
-#include <sys/socket.h> 
-#include <sys/types.h> //-> for socket()
-#include <netinet/in.h> //-> for sockaddr_in
-#include <unistd.h> //-> for close()
-#include <arpa/inet.h> //-> for inet_ntoa()
-#include <poll.h> 
-#include <csignal> 
-
-class Client {
-    public :
-        Client();
-        ~Client();
-        int fd;
-        std::string ip;
-};
-
-class Server {
-    public :
-        int port;
-        int socketfd;
-        static bool signal;
-        std::vector<Client> clients;
-        std::vector<struct pollfd> fds; //pollfd is used in poll() to monitor fds (sockets) for events
-        void loop();
-        void new_client();
-        void clear_client(int fd);
-        void new_data(int fd);
-        void close_fd();
-        void init_socket();
-        static void signal_handler(int signum);
-        Server();
-        ~Server();
-};
-
-bool Server::signal = false;
+#include "irc.hpp"
 
 Server::~Server() {}
 Server::Server() {}
 
-Client::~Client() {}
-Client::Client() {}
+bool Server::signal = false; //has to be in the file
+
+void Server::signal_handler(int signum) {
+	(void)signum;
+	std::cout << std::endl << "Signal Received" << std::endl;
+	Server::signal = true;
+}
 
 void Server::clear_client(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
@@ -69,7 +31,6 @@ void Server::close_fd() {
     std::cout << "Server " << socketfd << " disconnected" << std::endl;
     close(socketfd);
 }
-
 
 
 //client also has a socket (fd)
@@ -105,11 +66,54 @@ void Server::new_data(int fd) {
     }
     else {
         buf[r] = '\0';
+        parse(fd, buf);
         std::cout << "Client " << fd << ": " << buf << std::endl;
-        // for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) 
-        //     if ((*it).fd != fd) { //don't send data back to the original client
-        //         send((*it).fd, buf, r, 0); }
+        
 }}
+
+void Server::parse(int fd, char *buf) {
+    std::string str = buf;
+    size_t start = str.find_first_not_of(" \t\n\r"); //skip leading whitespace
+    if (start == std::string::npos) 
+        return; //no command provided
+    size_t end = str.find_first_of(" ", start); //start searching at start (int)
+    if (end == std::string::npos) 
+        end = str.length();
+    std::string command = str.substr(start, end - start);
+    std::string args = str.substr(end + 1); //from end to the rest
+
+    std::vector<std::string> arglist;
+    std::stringstream ss(args);
+    std::string arg;
+    while (std::getline(ss, arg, ' ')) {
+        if (!arg.empty())
+            arglist.push_back(arg);
+    }
+
+    // if (command == "/topic")
+    //     topic(fd, arglist);
+    // else if (command == "/mode")
+    //     mode(fd, arglist);
+    // else if (command == "/kick")
+    //     kick(fd, arglist);
+    // else if (command == "/invite")
+    //     invite(fd, arglist);
+    // else if (command == "/msg")
+    //     msg(fd, arglist);
+    // else if (command == "/nick")
+    //     nick(fd, arglist);
+    // else if (command == "/join")
+    //     join(fd, arglist);
+    // else {
+        for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
+            std::stringstream ss;
+            ss << fd;
+            if ((*it).fd != fd) { //don't send data back to the original client
+                std::string message = "Client " + ss.str() + ": " + buf;
+                send((*it).fd, message.c_str(), message.size(), 0); }
+        }
+    // }
+}
 
 
 void Server::loop() {
@@ -151,26 +155,3 @@ void Server::init_socket() {
 }
 
 
-
-void Server::signal_handler(int signum) {
-	(void)signum;
-	std::cout << std::endl << "Signal Received" << std::endl;
-	Server::signal = true;
-}
-
-
-int main(int argc, char **argv) {
-    if (argc != 2) {std::cerr << "Invalid number of arguments.\n"; return 1;}
-    char* endptr;
-    long num = strtol(argv[1], &endptr, 10);
-    if (endptr == argv[1]|| num > 65535 || num < 1024) {std::cerr << "Invalid port.\n"; return 1;}
-    Server server;
-    server.port = atoi(argv[1]);
-
-    std::cout << "Server running." << std::endl;
-    signal(SIGINT, Server::signal_handler);
-    signal(SIGQUIT, Server::signal_handler); //ctrl + "\""
-    server.init_socket();
-	server.loop();
-	std::cout << "Server closed." << std::endl;
-}
