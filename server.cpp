@@ -75,44 +75,44 @@ void Server::parse(int fd, char *buf) {
     std::string str = buf;
     size_t start = str.find_first_not_of(" \t\n\r"); //skip leading whitespace
     if (start == std::string::npos) 
-        return; //no command provided
+        return ; //no command provided
     size_t end = str.find_first_of(" ", start); //start searching at start (int)
     if (end == std::string::npos) 
         end = str.length();
-    std::string command = str.substr(start, end - start);
-    std::string args = str.substr(end + 1); //from end to the rest
-
-    std::vector<std::string> arglist;
-    std::stringstream ss(args);
-    std::string arg;
-    while (std::getline(ss, arg, ' ')) {
-        if (!arg.empty())
-            arglist.push_back(arg);
+    std::string command = str.substr(start, end - start); //number of chars 
+    int a = 0;
+    if (end != str.length()) {
+        std::string args = str.substr(end + 1); //from end to the rest
+        std::vector<std::string> arglist;
+        std::stringstream ss(args);
+        std::string arg;
+        while (std::getline(ss, arg, ' '))
+            if (!arg.empty())
+                arglist.push_back(arg);
+        // if (command == "/topic")
+        //     topic(fd, arglist);
+        // else if (command == "/mode")
+        //     mode(fd, arglist);
+        // else if (command == "/kick")
+        //     kick(fd, arglist);
+        // else if (command == "/invite")
+        //     invite(fd, arglist);
+        // else if (command == "/msg")
+        //     msg(fd, arglist);
+        // else if (command == "/nick")
+        //     nick(fd, arglist);
+        // else if (command == "/join")
+        //     join(fd, arglist);
+        // else {a = 1;}
     }
-
-    // if (command == "/topic")
-    //     topic(fd, arglist);
-    // else if (command == "/mode")
-    //     mode(fd, arglist);
-    // else if (command == "/kick")
-    //     kick(fd, arglist);
-    // else if (command == "/invite")
-    //     invite(fd, arglist);
-    // else if (command == "/msg")
-    //     msg(fd, arglist);
-    // else if (command == "/nick")
-    //     nick(fd, arglist);
-    // else if (command == "/join")
-    //     join(fd, arglist);
-    // else {
+    if (a == 1 || end == str.length()) {
         for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
             std::stringstream ss;
             ss << fd;
             if ((*it).fd != fd) { //don't send data back to the original client
                 std::string message = "Client " + ss.str() + ": " + buf;
                 send((*it).fd, message.c_str(), message.size(), 0); }
-        }
-    // }
+        }}
 }
 
 
