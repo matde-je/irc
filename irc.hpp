@@ -26,7 +26,8 @@ class Client {
         int fd;
         std::string ip;
         std::string name;
-        std::string nickname;
+        std::string nick;
+        bool pass;
 };
 
 
@@ -49,6 +50,7 @@ class Server {
         Server();
         ~Server();
 
+        void cmd_parse(int fd, std::string comd ,std::vector<std::string> args);
         void topic(int fd, std::vector<std::string> args);
         void mode(int fd, std::vector<std::string> args);
         void kick(int fd, std::vector<std::string> args);
@@ -56,4 +58,6 @@ class Server {
         void msg(int fd, std::vector<std::string> args);
         void join(int fd, std::vector<std::string> args);
         void nick(int fd, std::vector<std::string> args);
+        void user(int fd, std::vector<std::string> args);
+        void pass(int fd, std::vector<std::string> args);
 };

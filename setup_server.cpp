@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <cstring>
 #include <climits>
@@ -106,9 +107,13 @@ void Server::new_data(int fd) {
     else {
         buf[r] = '\0';
         std::cout << "Client " << fd << ": " << buf << std::endl;
-        // for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) 
+        // for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
+        //     std::stringstream ss;
+        //     ss << fd;
         //     if ((*it).fd != fd) { //don't send data back to the original client
-        //         send((*it).fd, buf, r, 0); }
+        //         std::string message = "Client " + ss.str() + ": " + buf;
+        //         send((*it).fd, message.c_str(), message.size(), 0); }
+        // }
 }}
 
 

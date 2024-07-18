@@ -22,7 +22,7 @@ void Server::clear_client(int fd) {
     }
 }
 
-//If you close the file descriptor via the client, you do not need to close it again in fds vector
+//if you close the file descriptor via the client, you do not need to close it again in fds vector
 void Server::close_fd() {
     for (size_t i = 0; i < clients.size(); i++) {
         std::cout << "Client " << clients[i].fd << " disconnected" << std::endl;
@@ -67,7 +67,6 @@ void Server::new_data(int fd) {
     else {
         buf[r] = '\0';
         parse(fd, buf);
-        std::cout << "Client " << fd << ": " << buf << std::endl;
         
 }}
 
@@ -79,41 +78,34 @@ void Server::parse(int fd, char *buf) {
     size_t end = str.find_first_of(" ", start); //start searching at start (int)
     if (end == std::string::npos) 
         end = str.length();
-    std::string command = str.substr(start, end - start); //number of chars 
-    int a = 0;
+    std::string cmd = str.substr(start, end - start); //number of chars 
+    std::vector<std::string> arglist;
     if (end != str.length()) {
         std::string args = str.substr(end + 1); //from end to the rest
-        std::vector<std::string> arglist;
         std::stringstream ss(args);
         std::string arg;
         while (std::getline(ss, arg, ' '))
             if (!arg.empty())
                 arglist.push_back(arg);
-        // if (command == "/topic")
-        //     topic(fd, arglist);
-        // else if (command == "/mode")
-        //     mode(fd, arglist);
-        // else if (command == "/kick")
-        //     kick(fd, arglist);
-        // else if (command == "/invite")
-        //     invite(fd, arglist);
-        // else if (command == "/msg")
-        //     msg(fd, arglist);
-        // else if (command == "/nick")
-        //     nick(fd, arglist);
-        // else if (command == "/join")
-        //     join(fd, arglist);
-        // else {a = 1;}
-    }
-    if (a == 1 || end == str.length()) {
-        for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
-            std::stringstream ss;
-            ss << fd;
-            if ((*it).fd != fd) { //don't send data back to the original client
-                std::string message = "Client " + ss.str() + ": " + buf;
-                send((*it).fd, message.c_str(), message.size(), 0); }
-        }}
+        }
+    if (cmd != "pass") {
+        for (size_t i = 0; i < clients.size(); i++) {
+            if (clients[i].fd == fd) {
+                if (clients[i].pass == false) {
+                    send(fd, "You need to enter the password to access the server.\n", 54, 0); 
+                    return ; }
+        }}}
+    if (end != str.length())
+        cmd_parse(fd, cmd, arglist);
 }
+
+//     for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
+//         std::stringstream ss;
+//         ss << fd;
+//         if ((*it).fd != fd) { //don't send data back to the original client
+//             std::string message = "Client " + ss.str() + ": " + buf;
+//             send((*it).fd, message.c_str(), message.size(), 0); }
+//     }
 
 
 void Server::loop() {
