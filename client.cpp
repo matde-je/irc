@@ -15,20 +15,19 @@ std::string Server::get_nick(int fd) {
 }
 
 
-int Server::nick(int fd, std::vector<std::string> args){
+void Server::nick(int fd, std::vector<std::string> args){
     if (args.size() == 1) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].nick = args[0];
                 std::cout << "Client " << fd << ": changed nick to " << args[0] << std::endl;
-                return 1 ;
+                return ;
             }}}
-    return 0;
 }
 
 //USER <username> <mode> <unused> <realname>
 //USER myusername 0 0 My Real Name
-int Server::user(int fd, std::vector<std::string> args){
+void Server::user(int fd, std::vector<std::string> args){
     if (args.size() == 4) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
@@ -36,34 +35,30 @@ int Server::user(int fd, std::vector<std::string> args){
                 if (clients[i].nick != "\0")
                     std::cout << clients[i].nick << ": changed name to " << args[0] << std::endl;
                 else {std::cout << "Client " << fd << ": changed name to " << args[0] << std::endl;}
-                return 1;
+                return ;
             }}}
-    else 
-        send(fd, "Try: user <username> <mode> <unused> <realname>\n", 49, 0); 
-    return 0;
+    send(fd, "Try: USER <username> <mode> <unused> <realname>\n", 49, 0); 
 }
 
-int    Server::pass(int fd, std::vector<std::string> args){
+void    Server::pass(int fd, std::vector<std::string> args){
     if (args.size() == 1 && !args[0].compare(password)) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].pass = true;
-                return 1;
+                return ;
             }}}
-    else if (args.size() == 1) 
-        send(fd, "Wrong password.\n", 17, 0); 
-    return 0; 
+    send(fd, "Wrong password.\n", 17, 0); 
 }
 
 
 
 
 void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args, bool ver, std::string buf) {
-    if (cmd != "pass") {
+    if (cmd != "/pass") {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 if (clients[i].pass == false) {
-                    send(fd, "Enter the password to access server.\n", 38, 0); 
+                    send(fd, "Enter password to access server.\n", 34, 0); 
                     return ; }
         }}}
     if (ver == true) {
@@ -90,23 +85,23 @@ void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args
 }
 
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
-    if (cmd == "pass")
-        return pass(fd, args);
+    if (cmd == "/pass")
+        {pass(fd, args); return 1;}
     else if (cmd == "USER")
-        return user(fd, args);
+        {user(fd, args); return 1;}
     else if (cmd == "/nick")
-        return nick(fd, args);
+        {nick(fd, args); return 1;}
     // else if (cmd == "/topic")
-    //     return topic(fd, args);
+    //     {topic(fd, args); return 1;}
     // else if (cmd == "/mode")
-    //     return mode(fd, args);
+    //     {mode(fd, args); return 1;}
     // else if (cmd == "/kick")
-    //     return kick(fd, args);
+    //     {kick(fd, args); return 1;}
     // else if (cmd == "/invite")
-    //     return invite(fd, args);
-    // else if (cmd == "/msg")
-    //     return msg(fd, args);
+    //     {invite(fd, args); return 1;}
+    else if (cmd == "/msg")
+        {msg(fd, args); return 1;}
     else if (cmd == "/join")
-        return join(fd, args);
+        {join(fd, args); return 1;}
     return 0;
 }
