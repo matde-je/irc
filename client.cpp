@@ -63,7 +63,7 @@ void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 if (clients[i].pass == false) {
-                    send(fd, "You need to enter the password to access the server.\n", 54, 0); 
+                    send(fd, "Enter the password to access server.\n", 38, 0); 
                     return ; }
         }}}
     if (ver == true) {
@@ -77,13 +77,13 @@ void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args
     if (ver == 0) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
+                std::string name = clients[i].nick;
                 if (clients[i].channel != "\0") {
                     std::string chan = clients[i].channel;
                     for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
-                        if ((*it).fd != fd && (*it).channel == chan) { //don't send data back to the original client, and sent it to everyone in the channel
-                                std::string mess = get_nick((*it).fd) + ": " + buf;
+                        if ((*it).fd != fd && (*it).channel == chan) { //don't send data back to the original client, and send it to everyone in the channel
+                                std::string mess = name + ": " + buf;
                             send((*it).fd, mess.c_str(), mess.size(), 0); }
-
                     }
     }}}}
     
