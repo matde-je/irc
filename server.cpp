@@ -11,7 +11,7 @@ void Server::signal_handler(int signum) {
 	Server::signal = true;
 }
 
-void Server::clear_client(int fd) {
+void Server::clear_clients(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd)
             {clients.erase(clients.begin() + i); break ;}
@@ -23,7 +23,7 @@ void Server::clear_client(int fd) {
 }
 
 //if you close the file descriptor via the client, you do not need to close it again in fds vector
-void Server::close_fd() {
+void Server::close_fds() {
     for (size_t i = 0; i < clients.size(); i++) {
         std::cout << get_nick(clients[i].fd) << " disconnected" << std::endl;
         close(clients[i].fd);
@@ -61,13 +61,12 @@ void Server::new_data(int fd) {
     int r = recv(fd, buf, 4096, 0);
     if (r <= 0) {
         std::cout << get_nick(fd) << ": went away\n";
+        clear_clients(fd);
         close(fd);
-        clear_client(fd);
     }
     else {
         buf[r] = '\0';
         parse(fd, buf);
-        
 }}
 
 void Server::parse(int fd, char *buf) {
@@ -89,16 +88,9 @@ void Server::parse(int fd, char *buf) {
                 arglist.push_back(arg);
         }
     bool ver = end != str.length();
-    cmd_parse(fd, cmd, arglist, ver);
+    std::string bu = buf;
+    cmd_parse(fd, cmd, arglist, ver, bu);
 }
-
-//     for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
-//         std::stringstream ss;
-//         ss << fd;
-//         if ((*it).fd != fd) { //don't send data back to the original client
-//             std::string message = "Client " + ss.str() + ": " + buf;
-//             send((*it).fd, message.c_str(), message.size(), 0); }
-//     }
 
 
 void Server::loop() {
@@ -111,7 +103,7 @@ void Server::loop() {
                     new_client();
                 else {new_data(fds[i].fd);}
             }}}
-    close_fd();
+    close_fds();
 }
 
 

@@ -15,20 +15,20 @@ std::string Server::get_nick(int fd) {
 }
 
 
-void Server::nick(int fd, std::vector<std::string> args){
+int Server::nick(int fd, std::vector<std::string> args){
     if (args.size() == 1) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].nick = args[0];
                 std::cout << "Client " << fd << ": changed nick to " << args[0] << std::endl;
-                break ;
+                return 1 ;
             }}}
-    
+    return 0;
 }
 
 //USER <username> <mode> <unused> <realname>
 //USER myusername 0 0 My Real Name
-void Server::user(int fd, std::vector<std::string> args){
+int Server::user(int fd, std::vector<std::string> args){
     if (args.size() == 4) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
@@ -36,27 +36,29 @@ void Server::user(int fd, std::vector<std::string> args){
                 if (clients[i].nick != "\0")
                     std::cout << clients[i].nick << ": changed name to " << args[0] << std::endl;
                 else {std::cout << "Client " << fd << ": changed name to " << args[0] << std::endl;}
-                return ;
+                return 1;
             }}}
-    else {
-        send(fd, "Try: user <username> <mode> <unused> <realname>\n", 49, 0); return; }
+    else 
+        send(fd, "Try: user <username> <mode> <unused> <realname>\n", 49, 0); 
+    return 0;
 }
 
-void    Server::pass(int fd, std::vector<std::string> args){
+int    Server::pass(int fd, std::vector<std::string> args){
     if (args.size() == 1 && !args[0].compare(password)) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].pass = true;
-                break ;
+                return 1;
             }}}
-    else if (args.size() == 1) {
-        send(fd, "Wrong password.\n", 17, 0); return; }
+    else if (args.size() == 1) 
+        send(fd, "Wrong password.\n", 17, 0); 
+    return 0; 
 }
 
 
 
 
-void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args, bool ver) {
+void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args, bool ver, std::string buf) {
     if (cmd != "pass") {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
@@ -70,27 +72,41 @@ void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args
             if (pos != std::string::npos)
                 args[i].erase(pos, 1);
             }
-        send_cmd(fd, cmd, args);
+        ver = send_cmd(fd, cmd, args);
     }
+    if (ver == 0) {
+        for (size_t i = 0; i < clients.size(); i++) {
+            if (clients[i].fd == fd) {
+                if (clients[i].channel != "\0") {
+                    std::string chan = clients[i].channel;
+                    for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
+                        if ((*it).fd != fd && (*it).channel == chan) { //don't send data back to the original client, and sent it to everyone in the channel
+                                std::string mess = get_nick((*it).fd) + ": " + buf;
+                            send((*it).fd, mess.c_str(), mess.size(), 0); }
+
+                    }
+    }}}}
+    
 }
 
-void    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
+int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
     if (cmd == "pass")
-        pass(fd, args);
+        return pass(fd, args);
     else if (cmd == "USER")
-        user(fd, args);
+        return user(fd, args);
     else if (cmd == "/nick")
-        nick(fd, args);
+        return nick(fd, args);
     // else if (cmd == "/topic")
-    //     topic(fd, args);
+    //     return topic(fd, args);
     // else if (cmd == "/mode")
-    //     mode(fd, args);
+    //     return mode(fd, args);
     // else if (cmd == "/kick")
-    //     kick(fd, args);
+    //     return kick(fd, args);
     // else if (cmd == "/invite")
-    //     invite(fd, args);
+    //     return invite(fd, args);
     // else if (cmd == "/msg")
-    //     msg(fd, args);
+    //     return msg(fd, args);
     else if (cmd == "/join")
-        join(fd, args);
+        return join(fd, args);
+    return 0;
 }

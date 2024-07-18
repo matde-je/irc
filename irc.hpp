@@ -28,6 +28,7 @@ class Client {
         std::string name;
         std::string nick;
         bool pass;
+        std::string channel;
 };
 
 
@@ -42,24 +43,24 @@ class Server {
         void loop();
         void parse(int fd, char *buf);
         void new_client();
-        void clear_client(int fd);
+        void clear_clients(int fd);
         void new_data(int fd);
-        void close_fd();
+        void close_fds();
         void init_socket();
         static void signal_handler(int signum);
         Server();
         ~Server();
 
-        void cmd_parse(int fd, std::string comd ,std::vector<std::string> args, bool ver);
-        void send_cmd(int fd, std::string cmd, std::vector<std::string> args);
-        void topic(int fd, std::vector<std::string> args);
-        void mode(int fd, std::vector<std::string> args);
-        void kick(int fd, std::vector<std::string> args);
-        void invite(int fd, std::vector<std::string> args);
-        void msg(int fd, std::vector<std::string> args);
-        void join(int fd, std::vector<std::string> args);
-        void nick(int fd, std::vector<std::string> args);
-        void user(int fd, std::vector<std::string> args);
-        void pass(int fd, std::vector<std::string> args);
+        void cmd_parse(int fd, std::string comd ,std::vector<std::string> args, bool ver, std::string buf);
+        int send_cmd(int fd, std::string cmd, std::vector<std::string> args);
+        int topic(int fd, std::vector<std::string> args);
+        int mode(int fd, std::vector<std::string> args);
+        int kick(int fd, std::vector<std::string> args);
+        int invite(int fd, std::vector<std::string> args);
+        int msg(int fd, std::vector<std::string> args);
+        int join(int fd, std::vector<std::string> args);
+        int nick(int fd, std::vector<std::string> args);
+        int user(int fd, std::vector<std::string> args);
+        int pass(int fd, std::vector<std::string> args);
         std::string get_nick(int fd);
 };
