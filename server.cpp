@@ -25,7 +25,7 @@ void Server::clear_client(int fd) {
 //if you close the file descriptor via the client, you do not need to close it again in fds vector
 void Server::close_fd() {
     for (size_t i = 0; i < clients.size(); i++) {
-        std::cout << "Client " << clients[i].fd << " disconnected" << std::endl;
+        std::cout << get_nick(clients[i].fd) << " disconnected" << std::endl;
         close(clients[i].fd);
     }
     std::cout << "Server " << socketfd << " disconnected" << std::endl;
@@ -60,9 +60,9 @@ void Server::new_data(int fd) {
     char buf[4097];
     int r = recv(fd, buf, 4096, 0);
     if (r <= 0) {
+        std::cout << get_nick(fd) << ": went away\n";
         close(fd);
         clear_client(fd);
-        std::cout << "Client " << fd << ": went away\n";
     }
     else {
         buf[r] = '\0';
@@ -88,15 +88,8 @@ void Server::parse(int fd, char *buf) {
             if (!arg.empty())
                 arglist.push_back(arg);
         }
-    if (cmd != "pass") {
-        for (size_t i = 0; i < clients.size(); i++) {
-            if (clients[i].fd == fd) {
-                if (clients[i].pass == false) {
-                    send(fd, "You need to enter the password to access the server.\n", 54, 0); 
-                    return ; }
-        }}}
-    if (end != str.length())
-        cmd_parse(fd, cmd, arglist);
+    bool ver = end != str.length();
+    cmd_parse(fd, cmd, arglist, ver);
 }
 
 //     for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it)  {
