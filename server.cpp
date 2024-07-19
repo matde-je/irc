@@ -11,7 +11,7 @@ void Server::signal_handler(int signum) {
 	Server::signal = true;
 }
 
-void Server::clear_clients(int fd) {
+void Server::clear_client(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd)
             {clients.erase(clients.begin() + i); break ;}
@@ -61,7 +61,7 @@ void Server::new_data(int fd) {
     int r = recv(fd, buf, 4096, 0);
     if (r <= 0) {
         std::cout << get_nick(fd) << ": went away\n";
-        clear_clients(fd);
+        clear_client(fd);
         close(fd);
     }
     else {
@@ -69,8 +69,14 @@ void Server::new_data(int fd) {
         parse(fd, buf);
 }}
 
+
+
 void Server::parse(int fd, char *buf) {
     std::string str = buf;
+    if (!str.empty() && str[str.length() - 1] == '\n') 
+        str.erase(str.length() - 1); 
+    if (!str.empty() && str[str.length() - 1] == '\r') 
+        str.erase(str.length() - 1); 
     size_t start = str.find_first_not_of(" \t\n\r"); //skip leading whitespace
     if (start == std::string::npos) 
         return ; //no command provided
@@ -122,7 +128,7 @@ void Server::init_socket() {
 	if (fcntl(socketfd, F_SETFL, O_NONBLOCK) == -1) //non-blocking socket
 		{std::cerr << "Non blocking socket failed.\n"; return;}
     if (bind(socketfd, (struct sockaddr*)&sin, sizeof(sin)) == -1) {std::cerr << "Binding failed.\n"; return;}
-    if (listen(socketfd, SOMAXCONN) == -1) {std::cerr << "Binding failed.\n"; return;}
+    if (listen(socketfd, SOMAXCONN) == -1) {std::cerr << "Listen failed.\n"; return;}
 
     struct pollfd poll; 
     poll.fd = socketfd; 

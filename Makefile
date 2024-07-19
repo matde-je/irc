@@ -6,7 +6,7 @@ SRCS = main.cpp server.cpp client.cpp cmds.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
-name = ircserver
+name = ircserv
 
 # Build name
 $(name): $(OBJS)

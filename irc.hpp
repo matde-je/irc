@@ -19,6 +19,7 @@
 #include <poll.h> 
 #include <csignal> 
 
+//info about each client
 class Client {
     public :
         Client();
@@ -43,7 +44,7 @@ class Server {
         void loop();
         void parse(int fd, char *buf);
         void new_client();
-        void clear_clients(int fd);
+        void clear_client(int fd);
         void new_data(int fd);
         void close_fds();
         void init_socket();
