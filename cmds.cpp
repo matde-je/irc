@@ -17,16 +17,33 @@
 // }
 
 ///msg <nickname> <message> (private message)
+//or in channel
 //open new page
 void Server::msg(int fd, std::vector<std::string> args){
     if (is_authentic(fd) == 1) {return ;}
-    if (args.size() != 2)
-        {send(fd, "Try /msg <nickname> <message>\r\n", 32, 0); return ; }
+    // if (args.size() != 2)
+    //     {send(fd, "Try /msg <nickname> <message>\r\n", 32, 0); return ; }
     size_t i;
+    if (args.size() == 2) {
+        for (i = 0; i < clients.size(); i++) {
+            if (clients[i].nick == args[0]) {
+                std::string str = get_nick(fd) + " sent you a private message: " + args[1] + "\r\n";
+                send(clients[i].fd, str.c_str(), str.size(), 0);
+                return ;
+            }}}
+    std::string str;
     for (i = 0; i < clients.size(); i++) {
-        if (clients[i].nick == args[0]) {
-            std::string str = get_nick(fd) + " sent you a private message: " + args[1] + "\r\n";
-            send(clients[i].fd, str.c_str(), str.size(), 0);
+        if (clients[i].fd == fd) {
+            if (clients[i].channel != "\0") {
+                for (size_t k = 0; k < clients.size(); k++) {
+                    if (clients[k].channel == clients[i].channel && i != k) {
+                        for (size_t j = 0; j < args.size(); j++) {
+                            str += args[j] + " ";
+                        }
+                        std::string message = ":" + clients[i].nick + " PRIVMSG " + clients[k].channel + " :" + str + "\r\n";
+                        send(clients[k].fd, message.c_str(), message.size(), 0);
+                    }}
+                return ; }
             return ;
         }}
     send(fd, "Error, nick isnt avaliable.\r\n", 30, 0);
@@ -39,25 +56,20 @@ void Server::msg(int fd, std::vector<std::string> args){
 void Server::join(int fd, std::vector<std::string> args) {
     if (is_authentic(fd) == 1) {return ;}
     if (args.size() != 1 || args[0][0] != '#')
-       {send(fd, "Try /join #channel\r\n", 21, 0); return ; } 
-
-    size_t pos = args[0].find('#'); //removing #
-        if (pos != std::string::npos)
-            args[0].erase(pos, 1);
-
+       {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; } 
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd) {
+            if (clients[i].channel == args[0]) {return ;}
             clients[i].channel = args[0];   
-            std::string mess = "Currently in #" + args[0] + "\r\n";
-            send(fd, mess.c_str(), mess.size(), 0);
-            std::cout << clients[i].nick << ": joined #" << args[0] << std::endl;
             for (size_t j = 0; j < clients.size(); j++) {
                 if (clients[j].channel == args[0] && clients[j].fd != fd) {
                     std::string notify = clients[i].nick + " has joined " + args[0] + "\r\n";
                     send(clients[j].fd, notify.c_str(), notify.size(), 0);
-                }
-            }
-            return ;
+                }}
+            std::string join_message = ":" + clients[i].nick + " JOIN " + args[0] + "\r\n";
+            std::cout << clients[i].nick << ": joined " << args[0] << std::endl;
+            send(fd, join_message.c_str(), join_message.size(), 0);
+            return ; 
     }}
 }
 
