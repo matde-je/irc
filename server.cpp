@@ -70,33 +70,38 @@ void Server::new_data(int fd) {
 }}
 
 
-
 void Server::parse(int fd, char *buf) {
     std::string str = buf;
     if (!str.empty() && str[str.length() - 1] == '\n') 
         str.erase(str.length() - 1); 
     if (!str.empty() && str[str.length() - 1] == '\r') 
         str.erase(str.length() - 1); 
-    size_t start = str.find_first_not_of(" \t\n\r"); //skip leading whitespace
-    if (start == std::string::npos) 
-        return ; //no command provided
-    size_t end = str.find_first_of(" ", start); //start searching at start (int)
-    if (end == std::string::npos) 
-        end = str.length();
-    std::string cmd = str.substr(start, end - start); //number of chars 
-    std::vector<std::string> arglist;
-    if (end != str.length()) {
-        std::string args = str.substr(end + 1); //from end to the rest
-        std::stringstream ss(args);
-        std::string arg;
-        while (std::getline(ss, arg, ' '))
-            if (!arg.empty())
-                arglist.push_back(arg);
-        }
-    bool ver = end != str.length();
-    std::string bu = buf;
-    cmd_parse(fd, cmd, arglist, ver, bu);
+    std::stringstream ss(str);
+    std::string command;
+    while (std::getline(ss, command)) { //split the string into individual commands based on '\n'
+        //std::cout << "Received command: '" << command << "'" << std::endl; // Debugging line
+        if (!command.empty() && command[command.length() - 1] == '\r') 
+            command.erase(command.length() - 1);
+        size_t start = command.find_first_not_of("\t\v "); 
+        if (start == std::string::npos) 
+            continue; //no command provided
+        std::string cmd = command.substr(start); //extract the command
+        //std::cout << "Parsed command: '" << cmd << "'" << std::endl; // Debugging line
+        std::vector<std::string> arglist;
+        size_t end = cmd.find_first_of(" ");
+        if (end != std::string::npos) {
+            std::string args = cmd.substr(end + 1); //get the rest of the string
+            std::stringstream argStream(args);
+            std::string arg;
+            while (std::getline(argStream, arg, ' ')) {
+                if (!arg.empty())
+                    arglist.push_back(arg);
+            }}
+        bool ver = end != std::string::npos;
+        cmd_parse(fd, cmd.substr(0, end), arglist, ver, command); 
+    }
 }
+
 
 
 void Server::loop() {

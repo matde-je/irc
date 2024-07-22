@@ -15,5 +15,4 @@ int main(int argc, char **argv) {
     server.init_socket();
 	server.loop();
 	std::cout << "Server closed." << std::endl;
-
 }
