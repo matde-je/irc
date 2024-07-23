@@ -20,7 +20,7 @@
 //or in channel
 //open new page
 void Server::msg(int fd, std::vector<std::string> args) {
-    if (is_authentic(fd) == 1) {return ;}
+    if (is_authentic(fd)  != 0) {return ;}
     size_t i;
     if (args.size() >= 2) {
         for (i = 0; i < clients.size(); i++) {
@@ -32,7 +32,9 @@ void Server::msg(int fd, std::vector<std::string> args) {
                         for (size_t j = 1; j < args.size(); j++) 
                             content += args[j] + " ";
                         if (!content.empty()) 
-                            content = content.substr(0, content.length() - 1);   
+                            content = content.substr(0, content.length() - 1);
+                        if (content[0] == ':')
+                               content = content.substr(1, content.length());
                         privmess = ":" + get_nick(fd) + " PRIVMSG " + args[0] + " :" + content + "\r\n";
                         send(clients[i].fd, privmess.c_str(), privmess.size(), 0);
                         std::string confirm = "Message sent to " + args[0] + "\r\n";
@@ -62,7 +64,7 @@ void Server::msg(int fd, std::vector<std::string> args) {
 //open another file with channel
 //this as an error
 void Server::join(int fd, std::vector<std::string> args) {
-    if (is_authentic(fd) == 1) {return ;}
+    if (is_authentic(fd) != 0) {return ;}
     if (args.size() != 1 || args[0][0] != '#')
        {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; } 
     for (size_t i = 0; i < clients.size(); i++) {

@@ -53,7 +53,7 @@ class Server {
         ~Server();
 
         int send_cmd(int fd, std::string cmd, std::vector<std::string> args);
-        int   is_authentic(int fd);
+        int is_authentic(int fd);
         void topic(int fd, std::vector<std::string> args);
         void mode(int fd, std::vector<std::string> args);
         void kick(int fd, std::vector<std::string> args);
@@ -63,5 +63,6 @@ class Server {
         void nick(int fd, std::vector<std::string> args);
         void user(int fd, std::vector<std::string> args);
         void pass(int fd, std::vector<std::string> args);
+        int  has_pass(int fd);
         std::string get_nick(int fd);
 };

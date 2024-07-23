@@ -16,7 +16,7 @@ std::string Server::get_nick(int fd) {
 
 //set /nick
 void Server::nick(int fd, std::vector<std::string> args){
-    if (is_authentic(fd) == 1) {return ;}
+    if (has_pass(fd) == 1) {return ;}
     if (args.size() == 1) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
@@ -29,7 +29,7 @@ void Server::nick(int fd, std::vector<std::string> args){
 //USER <username> <mode> <unused> <realname>
 //USER myusername 0 0 My Real Name
 void Server::user(int fd, std::vector<std::string> args){
-    if (is_authentic(fd) == 1) {return ;}
+    if (has_pass(fd) == 1) {return ;}
     if (args.size() == 4) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
@@ -47,19 +47,31 @@ void    Server::pass(int fd, std::vector<std::string> args){
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].pass = true;
-                send(fd, "Authentication successful.\r\n", 29, 0);
+                send(fd, "Password correct.\r\n", 20, 0);
                 return ;
             }}}
     send(fd, "Wrong password.\r\n", 18, 0); 
 }
 
+int    Server::has_pass(int fd) {
+    for (size_t i = 0; i < clients.size(); i++) {
+        if (clients[i].fd == fd) {
+            if (clients[i].pass == false) {
+                send(fd, "You must enter password.\r\n", 27, 0); 
+                return 1; }
+        }}
+    return 0;
+}
 
 int    Server::is_authentic(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
-            if (clients[i].fd == fd) {
-                if (clients[i].pass == false) {
-                    send(fd, "You must authenticate before joining a channel.\r\n", 50, 0); 
-                    return 1; }
+        if (clients[i].fd == fd) {
+            if (clients[i].pass == false) {
+                send(fd, "You must enter password.\r\n", 27, 0); 
+                return 1; }
+            if (clients[i].name == "\0" || clients[1].nick == "\0") {
+                send(fd, "You must authenticate before interacting.\r\n", 44, 0); 
+                return 2; }
         }}
     return 0;
 }
