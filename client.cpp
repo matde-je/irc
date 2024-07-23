@@ -64,26 +64,8 @@ int    Server::is_authentic(int fd) {
     return 0;
 }
 
-//ver = verification
-void    Server::cmd_parse(int fd, std::string cmd, std::vector<std::string> args, bool ver, std::string buf) {
-    (void) buf;
-    if (ver == true) {ver = send_cmd(fd, cmd, args);}
-    // if (ver == 0) {
-    //     for (size_t i = 0; i < clients.size(); i++) {
-    //         if (clients[i].fd == fd) {
-    //             std::string name = clients[i].nick;
-    //             if (clients[i].channel != "\0") {
-    //                 std::string chan = clients[i].channel;
-    //                 for (size_t j = 0; j < clients.size(); j++) {
-    //                     if (clients[j].fd == fd && clients[j].channel == chan) { //don't send data back to the original client, and send it to everyone currently in the channel
-    //                         std::string mess = name + ": " + buf + "\r\n";
-    //                         send(clients[j].fd, mess.c_str(), mess.size(), 0); }
-    //                 }
-    // }}}}
-}
-
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
-    std::cout << "Sending command: '" << cmd << "'" << std::endl;
+    //std::cout << "Sending command: '" << cmd << "'" << std::endl;
     if (cmd == "PASS") 
         {pass(fd, args); return 1;}
     else if (cmd == "USER")

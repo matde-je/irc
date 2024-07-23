@@ -52,7 +52,6 @@ class Server {
         Server();
         ~Server();
 
-        void cmd_parse(int fd, std::string comd ,std::vector<std::string> args, bool ver, std::string buf);
         int send_cmd(int fd, std::string cmd, std::vector<std::string> args);
         int   is_authentic(int fd);
         void topic(int fd, std::vector<std::string> args);

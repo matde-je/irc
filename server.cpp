@@ -95,11 +95,9 @@ void Server::parse(int fd, char *buf) {
             std::string arg;
             while (std::getline(argStream, arg, ' ')) {
                 if (!arg.empty())
-                    arglist.push_back(arg);
-            }}
-        bool ver = end != std::string::npos;
-        cmd_parse(fd, cmd.substr(0, end), arglist, ver, command); 
-    }
+                    arglist.push_back(arg); }
+            send_cmd(fd, cmd.substr(0, end), arglist);
+    }}
 }
 
 
