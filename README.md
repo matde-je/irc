@@ -1,1 +1,1 @@
-Building an IRC server using Hexchat
+Building an IRC server using Hexchat client
