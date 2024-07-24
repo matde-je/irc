@@ -45,7 +45,6 @@ class Server {
         void parse(int fd, char *buf);
         void new_client();
         void clear_client(int fd);
-        void new_data(int fd);
         void close_fds();
         void init_socket();
         static void signal_handler(int signum);

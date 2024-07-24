@@ -28,6 +28,7 @@ void Server::nick(int fd, std::vector<std::string> args){
 
 //USER <username> <mode> <unused> <realname>
 //USER myusername 0 0 My Real Name
+//check
 void Server::user(int fd, std::vector<std::string> args){
     if (has_pass(fd) == 1) {return ;}
     if (args.size() == 4) {
@@ -82,19 +83,19 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
         {pass(fd, args); return 1;}
     else if (cmd == "USER")
         {user(fd, args); return 1;}
-    else if (cmd == "NICK")
+    else if (cmd == "NICK" || cmd == "/nick")
         {nick(fd, args); return 1;}
-    // else if (cmd == "/topic")
-    //     {topic(fd, args); return 1;}
-    // else if (cmd == "/mode")
-    //     {mode(fd, args); return 1;}
-    // else if (cmd == "/kick")
-    //     {kick(fd, args); return 1;}
-    // else if (cmd == "/invite")
-    //     {invite(fd, args); return 1;}
-    else if (cmd == "PRIVMSG")
+    else if (cmd == "TOPIC" || cmd == "/topic")
+        {topic(fd, args); return 1;}
+    else if (cmd == "MODE" || cmd == "/mode")
+        {mode(fd, args); return 1;}
+    else if (cmd == "KICK" || cmd == "/kick")
+        {kick(fd, args); return 1;}
+    else if (cmd == "INVITE" || cmd == "/invite")
+        {invite(fd, args); return 1;}
+    else if (cmd == "PRIVMSG" || cmd == "/msg")
         {msg(fd, args); return 1;}
-    else if (cmd == "JOIN")
+    else if (cmd == "JOIN" || cmd == "/join")
         {join(fd, args); return 1;}
     return 0;
 }

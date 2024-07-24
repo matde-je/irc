@@ -55,42 +55,27 @@ void Server::new_client() {
 	fds.push_back(poll);
 }
 
-
-void Server::new_data(int fd) {
-    char buf[4097];
-    int r = recv(fd, buf, 4096, 0);
-    if (r <= 0) {
-        std::cout << get_nick(fd) << ": went away\n";
-        clear_client(fd);
-        close(fd);
-    }
-    else {
-        buf[r] = '\0';
-        parse(fd, buf);
-}}
-
-
 void Server::parse(int fd, char *buf) {
     std::string str = buf;
     if (!str.empty() && str[str.length() - 1] == '\n') 
         str.erase(str.length() - 1); 
     if (!str.empty() && str[str.length() - 1] == '\r') 
         str.erase(str.length() - 1); 
+    //std::cout << buf << std::endl;
     std::stringstream ss(str);
     std::string command;
     while (std::getline(ss, command)) { //split the string into individual commands based on '\n'
-        //std::cout << "Received command: '" << command << "'" << std::endl; // Debugging line
         if (!command.empty() && command[command.length() - 1] == '\r') 
             command.erase(command.length() - 1);
         size_t start = command.find_first_not_of("\t\v "); 
         if (start == std::string::npos) 
             continue; //no command provided
         std::string cmd = command.substr(start); //extract the command
-        //std::cout << "Parsed command: '" << cmd << "'" << std::endl; // Debugging line
         std::vector<std::string> arglist;
         size_t end = cmd.find_first_of(" ");
         if (end != std::string::npos) {
             std::string args = cmd.substr(end + 1); //get the rest of the string
+            //std::cout << "passed: " << cmd << " " << args << std::endl;
             std::stringstream argStream(args);
             std::string arg;
             while (std::getline(argStream, arg, ' ')) {
@@ -110,8 +95,18 @@ void Server::loop() {
             if (fds[i].revents & POLLIN) { //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
                 if (fds[i].fd == socketfd) //POLLIN on the server socket file descriptor indicates that there is a new incoming connection, not new data
                     new_client();
-                else {new_data(fds[i].fd);}
-            }}}
+                else {
+                    char buf[4097];
+                    int r = recv(fds[i].fd, buf, 4096, 0); //receive new data from fd that changed
+                    if (r <= 0) {
+                        std::cout << get_nick(fds[i].fd) << ": went away\n";
+                        clear_client(fds[i].fd);
+                        close(fds[i].fd);
+                    }
+                    else {
+                        buf[r] = '\0';
+                        parse(fds[i].fd, buf);}
+        }}}}
     close_fds();
 }
 
