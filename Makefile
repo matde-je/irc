@@ -2,7 +2,7 @@ CC = c++
 
 CFLAGS = -g -Wall -Wextra -Werror -std=c++98
 
-SRCS = main.cpp server.cpp client.cpp cmds.cpp
+SRCS = main.cpp server.cpp client.cpp cmds.cpp join_msg.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
