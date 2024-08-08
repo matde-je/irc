@@ -135,4 +135,9 @@ void Server::init_socket() {
 	fds.push_back(poll); //add server socket to pollfd
 }
 
-
+void Server::showClients(){
+    for (int i = 0; i < clients.size(); i++)
+    {
+        std::cout << clients[i].fd << " " << clients[i].ip << std::endl;
+    }
+}

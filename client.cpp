@@ -97,5 +97,7 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
         {msg(fd, args); return 1;}
     else if (cmd == "JOIN" || cmd == "/join")
         {join(fd, args); return 1;}
+    else if (cmd == "SHOW")
+        {showClients(); return 1;}
     return 0;
 }
