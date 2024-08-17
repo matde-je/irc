@@ -37,6 +37,7 @@ void Server::user(int fd, std::vector<std::string> args){
                 clients[i].name = args[0];
                 std::cout << "Client " << fd << ": changed name to " << args[0] << std::endl;
                 send(fd, ("NAME set to " + args[0] + "\r\n").c_str(), 13 + args[0].length(), 0);
+                send(fd, "\r\n", 2, 0);
                 return ;
             }}}
     send(fd, "Try: USER <username> <mode> <unused> <realname>\r\n", 50, 0); 
@@ -69,7 +70,7 @@ int    Server::is_authentic(int fd) {
             if (clients[i].pass == false) {
                 send(fd, "You must enter password.\r\n", 27, 0); 
                 return 1; }
-            if (clients[i].name == "\0" || clients[1].nick == "\0") {
+            if (clients[i].name == "\0" || clients[i].nick == "\0") {
                 send(fd, "You must authenticate before interacting.\r\n", 44, 0); 
                 return 2; }
         }}
@@ -77,7 +78,7 @@ int    Server::is_authentic(int fd) {
 }
 
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
-    //std::cout << "Sending command: '" << cmd << "'" << std::endl;
+    std::cout << "Sending command: '" << cmd << "'" << std::endl;
     if (cmd == "PASS") 
         {pass(fd, args); return 1;}
     else if (cmd == "USER")
@@ -96,7 +97,9 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
         {msg(fd, args); return 1;}
     else if (cmd == "JOIN" || cmd == "/join")
         {join(fd, args); return 1;}
-    else if (cmd == "SHOW")
-        {showClients(); return 1;}
+    else if (cmd == "SHOW" || cmd == "/show")
+        {
+            std::cout << "Showing clients\n";
+            showClients(fd); return 1;}
     return 0;
 }

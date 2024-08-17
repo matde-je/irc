@@ -65,5 +65,5 @@ class Server {
         int  has_pass(int fd);
         std::string get_nick(int fd);
 
-        void showClients();
+        void showClients(int fd);
 };

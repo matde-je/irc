@@ -135,9 +135,18 @@ void Server::init_socket() {
 	fds.push_back(poll); //add server socket to pollfd
 }
 
-void Server::showClients(){
+//SHOW 
+void Server::showClients(int fd) {
+    Client client;
     for (std::size_t i = 0; i < clients.size(); i++)
     {
-        std::cout << clients[i].fd << " " << clients[i].ip << std::endl;
+        if (clients[i].fd == fd)
+            {client = clients[i]; break ;}
+    }
+    std::cout << "Client " << client.nick << " requested to show clients" << std::endl;
+    for (std::size_t i = 0; i < clients.size(); i++)
+    {
+        if (clients[i].channel == client.channel)
+            send(fd, clients[i].nick.c_str(),clients[i].nick.length(), 0);
     }
 }
