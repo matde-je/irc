@@ -21,6 +21,5 @@ void Server::kick(int fd, std::vector<std::string> args){
 void Server::invite(int fd, std::vector<std::string> args){
     if (is_authentic(fd) != 0) {return ;}
     if (args.size() != 2) {return ;}
-
 }
 

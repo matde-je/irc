@@ -84,7 +84,7 @@ void Server::parse(int fd, char *buf) {
             send_cmd(fd, cmd.substr(0, end), arglist);
     }}
 }
-
+ 
 
 
 void Server::loop() {
@@ -136,7 +136,7 @@ void Server::init_socket() {
 }
 
 void Server::showClients(){
-    for (int i = 0; i < clients.size(); i++)
+    for (std::size_t i = 0; i < clients.size(); i++)
     {
         std::cout << clients[i].fd << " " << clients[i].ip << std::endl;
     }

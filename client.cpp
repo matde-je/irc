@@ -35,9 +35,8 @@ void Server::user(int fd, std::vector<std::string> args){
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].name = args[0];
-                if (clients[i].nick != "\0")
-                    std::cout << clients[i].nick << ": changed name to " << args[0] << std::endl;
-                else {std::cout << "Client " << fd << ": changed name to " << args[0] << std::endl;}
+                std::cout << "Client " << fd << ": changed name to " << args[0] << std::endl;
+                send(fd, ("NAME set to " + args[0] + "\r\n").c_str(), 13 + args[0].length(), 0);
                 return ;
             }}}
     send(fd, "Try: USER <username> <mode> <unused> <realname>\r\n", 50, 0); 

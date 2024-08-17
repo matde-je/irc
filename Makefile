@@ -23,4 +23,7 @@ fclean:
 clean:
 		rm -f $(OBJS)
 
+run: re
+		./ircserv 4555 123
+
 re: fclean $(name)
