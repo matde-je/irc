@@ -64,7 +64,7 @@ void Server::parse(int fd, char *buf) {
     //std::cout << buf << std::endl;
     std::stringstream ss(str);
     std::string command;
-    while (std::getline(ss, command)) { //split the string into individual commands based on '\n'
+    while (std::getline(ss, command, '\n')) { //split the string into individual commands based on '\n'
         if (!command.empty() && command[command.length() - 1] == '\r') 
             command.erase(command.length() - 1);
         size_t start = command.find_first_not_of("\t\v "); 
@@ -82,9 +82,11 @@ void Server::parse(int fd, char *buf) {
                 if (!arg.empty())
                     arglist.push_back(arg); }
             send_cmd(fd, cmd.substr(0, end), arglist);
-    }}
+        } else {
+            send_cmd(fd, cmd, arglist);
+        }
+    }
 }
- 
 
 
 void Server::loop() {
@@ -146,7 +148,10 @@ void Server::showClients(int fd) {
     std::cout << "Client " << client.nick << " requested to show clients" << std::endl;
     for (std::size_t i = 0; i < clients.size(); i++)
     {
-        if (clients[i].channel == client.channel)
+        if (clients[i].channel == client.channel){
             send(fd, clients[i].nick.c_str(),clients[i].nick.length(), 0);
+            send(fd, "\r\n", 2, 0);
+        }
+            
     }
 }

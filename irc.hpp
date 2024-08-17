@@ -30,6 +30,7 @@ class Client {
         std::string nick;
         bool pass;
         std::string channel;
+        bool admin;
 };
 
 

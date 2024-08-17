@@ -40,7 +40,7 @@ void Server::user(int fd, std::vector<std::string> args){
                 send(fd, "\r\n", 2, 0);
                 return ;
             }}}
-    send(fd, "Try: USER <username> <mode> <unused> <realname>\r\n", 50, 0); 
+            
 }
 
 void    Server::pass(int fd, std::vector<std::string> args){
