@@ -1,7 +1,7 @@
 #include "irc.hpp"
 
 Client::~Client() {}
-Client::Client() {pass = false;}
+Client::Client() {pass = false; channel = NULL;}
 
 std::string Server::get_nick(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {

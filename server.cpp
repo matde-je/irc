@@ -145,13 +145,26 @@ void Server::showClients(int fd) {
         if (clients[i].fd == fd)
             {client = clients[i]; break ;}
     }
+    Channel *channel = client.channel;
+    if (channel == NULL){
+        send(fd,( "you" + client.name + " are not in a channel\r\n").c_str(), 26 + client.name.length(), 0);
+        return;
+    }
     std::cout << "Client " << client.nick << " requested to show clients" << std::endl;
-    for (std::size_t i = 0; i < clients.size(); i++)
+    for (std::size_t i = 0;channel->getUsers().size(); i++)
     {
-        if (clients[i].channel == client.channel){
-            send(fd, clients[i].nick.c_str(),clients[i].nick.length(), 0);
+            send(fd, channel->getUsers()[i].nick.c_str(),channel->getUsers()[i].nick.length(), 0);
             send(fd, "\r\n", 2, 0);
-        }
             
     }
+}
+
+Channel *Server::findOrMakeChannel(std::string name){
+    for(size_t i = 0; i < channels.size(); i++){
+        if (channels[i].getName() == name){
+            return &channels[i];
+        }
+    }
+    channels.push_back(Channel(name));
+    return &channels[channels.size() - 1];
 }

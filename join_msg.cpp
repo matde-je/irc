@@ -12,7 +12,7 @@ void Server::msg(int fd, std::vector<std::string> args) {
             std::string content;
             std::string privmess;
             for (size_t k = 0; k < clients.size(); k++) {
-                if (clients[k].channel == clients[i].channel && i != k) {
+                if (clients[k].channel->getName() == clients[i].channel->getName() && i != k) {
                     for (size_t j = 1; j < args.size(); j++) 
                         content += args[j] + " ";
                     if (!content.empty()) 
@@ -28,16 +28,16 @@ void Server::msg(int fd, std::vector<std::string> args) {
     std::string str;
     for (i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd) {
-            if (clients[i].channel != "\0") {
+            if (clients[i].channel->getName() != "\0") {
                 for (size_t k = 0; k < clients.size(); k++) {
-                    if (clients[k].channel == clients[i].channel && i != k) {
+                    if (clients[k].channel->getName() == clients[i].channel->getName() && i != k) {
                         for (size_t j = 1; j < args.size(); j++) 
                             str += args[j] + " ";
                         if (!str.empty()) 
                             str = str.substr(0, str.length() - 1);
                         if (str[0] == ':')
                             str = str.substr(1, str.length());
-                        std::string message = ":" + clients[i].nick + " PRIVMSG " + clients[k].channel + " :" + str + "\r\n";
+                        std::string message = ":" + clients[i].nick + " PRIVMSG " + clients[k].channel->getName() + " :" + str + "\r\n";
                         send(clients[k].fd, message.c_str(), message.size(), 0);
                         return ;
             }}}}}
@@ -50,15 +50,22 @@ void Server::msg(int fd, std::vector<std::string> args) {
 //open another file with channel
 //this as an error
 void Server::join(int fd, std::vector<std::string> args) {
+    Channel *channel = findOrMakeChannel(args[0]);
     if (is_authentic(fd) != 0) {return ;}
     if (args.size() != 1 || args[0][0] != '#')
        {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; } 
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd) {
-            if (clients[i].channel == args[0]) {return ;}
-            clients[i].channel = args[0];   
+            int exists = channel->userExists(clients[i]);
+            if (exists == 1) {return ;}
+            else if(exists == 2){
+                channel->fixPartialExistence(clients[i]);
+                return;
+            }
+            clients[i].channel = channel;
+            channel->addUser(clients[i]);
             for (size_t j = 0; j < clients.size(); j++) {
-                if (clients[j].channel == args[0] && i != j) {
+                if (clients[j].channel->getName() == args[0] && i != j) {
                     std::string notify = clients[i].nick + " has joined " + args[0] + "\r\n";
                     send(clients[j].fd, notify.c_str(), notify.size(), 0);
                 }}
@@ -68,4 +75,3 @@ void Server::join(int fd, std::vector<std::string> args) {
             return ; 
     }}
 }
-

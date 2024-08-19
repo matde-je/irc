@@ -18,6 +18,9 @@
 #include <arpa/inet.h> //-> for inet_ntoa()
 #include <poll.h> 
 #include <csignal> 
+#include "channel.hpp"
+
+
 
 //info about each client
 class Client {
@@ -29,13 +32,13 @@ class Client {
         std::string name;
         std::string nick;
         bool pass;
-        std::string channel;
-        bool admin;
+        Channel *channel;
 };
 
 
 class Server {
     public :
+        std::vector<Channel> channels;
         int port;
         std::string password;
         int socketfd;
@@ -66,5 +69,6 @@ class Server {
         int  has_pass(int fd);
         std::string get_nick(int fd);
 
+        Channel *findOrMakeChannel(std::string name);
         void showClients(int fd);
 };
