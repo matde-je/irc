@@ -96,10 +96,21 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
     else if (cmd == "PRIVMSG" || cmd == "/msg")
         {msg(fd, args); return 1;}
     else if (cmd == "JOIN" || cmd == "/join")
-        {join(fd, args); return 1;}
+        {
+            join(fd, args);
+            for (size_t i = 0; i < clients.size(); i++)
+            {
+                if (clients[i].fd == fd){
+                    std::cout << "--------------->" << clients[i].channel->getName() << std::endl;
+                }
+            }
+            return 1;
+        }
     else if (cmd == "SHOW" || cmd == "/show")
         {
             std::cout << "Showing clients\n";
-            showClients(fd); return 1;}
+            showClients(fd); 
+            return 1;
+        }
     return 0;
 }

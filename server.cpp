@@ -151,7 +151,7 @@ void Server::showClients(int fd) {
         return;
     }
     std::cout << "Client " << client.nick << " requested to show clients" << std::endl;
-    for (std::size_t i = 0;channel->getUsers().size(); i++)
+    for (std::size_t i = 0;i < channel->getUsers().size(); i++)
     {
             send(fd, channel->getUsers()[i].nick.c_str(),channel->getUsers()[i].nick.length(), 0);
             send(fd, "\r\n", 2, 0);

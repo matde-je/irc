@@ -56,11 +56,20 @@ void Server::join(int fd, std::vector<std::string> args) {
        {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; } 
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd) {
+            send(fd, "FOUND CLIENT\r\n", 17, 0);
             int exists = channel->userExists(clients[i]);
-            if (exists == 1) {return ;}
+            if (exists == 1) {
+                send(fd, "YOU ARE ALREADY IN THE CHANNEL\r\n", 33,0);
+                return ;}
             else if(exists == 2){
+                send(fd, "SOMETHING WENT WRONG BUT ITS ALL GOOD NOW :)\r\n", 47,0);
                 channel->fixPartialExistence(clients[i]);
                 return;
+            }
+            if (clients[i].channel != NULL){
+                send(fd, "LEAVING PREVIOUS CHANNEL\r\n", 27, 0);
+                clients[i].channel->KickUser(clients[i].name);
+                clients[i].channel = NULL;
             }
             clients[i].channel = channel;
             channel->addUser(clients[i]);

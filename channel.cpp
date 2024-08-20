@@ -94,3 +94,7 @@ void Channel::fixPartialExistence(Client user){
 std::vector<Client> Channel::getUsers(){
     return this->users;
 }
+
+Channel::~Channel(){
+
+}
