@@ -84,3 +84,41 @@ void Server::join(int fd, std::vector<std::string> args) {
             return ; 
     }}
 }
+
+//previous 
+/*
+void Server::join(int fd, std::vector<std::string> args) {
+    Channel *channel = findOrMakeChannel(args[0]);
+    if (is_authentic(fd) != 0) {return ;}
+    if (args.size() != 1 || args[0][0] != '#')
+       {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; } 
+    for (size_t i = 0; i < clients.size(); i++) {
+        if (clients[i].fd == fd) {
+            send(fd, "FOUND CLIENT\r\n", 14, 0);
+            int exists = channel->userExists(clients[i]);
+            if (exists == 1) {
+                send(fd, "YOU ARE ALREADY IN THE CHANNEL\r\n", 33,0);
+                return ;}
+            else if(exists == 2){
+                send(fd, "SOMETHING WENT WRONG BUT ITS ALL GOOD NOW :)\r\n", 47,0);
+                channel->fixPartialExistence(clients[i]);
+                return;
+            }
+            if (clients[i].channel != NULL){
+                send(fd, "LEAVING PREVIOUS CHANNEL\r\n", 27, 0);
+                clients[i].channel->KickUser(clients[i].name);
+            }
+            clients[i].channel = channel;
+            channel->addUser(clients[i]);
+            for (size_t j = 0; j < clients.size(); j++) {
+                if (clients[j].channel->getName() == args[0] && i != j) {
+                    std::string notify = clients[i].nick + " has joined " + args[0] + "\r\n";
+                    send(clients[j].fd, notify.c_str(), notify.size(), 0);
+                }}
+            std::string join_message = ":" + clients[i].nick + " JOIN " + args[0] + "\r\n";
+            std::cout << clients[i].nick << ": joined " << args[0] << std::endl;
+            send(fd, join_message.c_str(), join_message.size(), 0);
+            return ; 
+    }}
+}
+*/
