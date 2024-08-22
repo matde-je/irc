@@ -1,5 +1,5 @@
-#include "irc.hpp"
-#include "channel.hpp"
+#include "../incs/irc.hpp"
+#include "../incs/channel.hpp"
 
 Channel::Channel(){
     this->name = "default channel name";
@@ -68,19 +68,19 @@ void Channel::addUser(Client user){
  * @param user 
  * @return int 
  */
-int Channel::userExists(Client user){
-    bool condition1 = isUser(user.name);
-    if (user.channel == NULL)
-        return 0;
-    bool condition2 = user.channel->getName() == this->name;
-    if ( condition1 && condition2) {
-        return 1;
-    } else if ( condition1 || condition2) {
-        return 2;
-    } else {
-        return 0;
-    }
-}
+// int Channel::userExists(Client user){
+//     bool condition1 = isUser(user.name);
+//     if (user.channel == NULL)
+//         return 0;
+//     bool condition2 = user.channel->getName() == this->name;
+//     if ( condition1 && condition2) {
+//         return 1;
+//     } else if ( condition1 || condition2) {
+//         return 2;
+//     } else {
+//         return 0;
+//     }
+// }
 
 void Channel::fixPartialExistence(Client user){
     if (user.channel->getName() == this->name){

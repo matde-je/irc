@@ -1,4 +1,4 @@
-#include "irc.hpp"
+#include "../incs/irc.hpp"
 
 Server::~Server() {}
 Server::Server() {}
@@ -159,12 +159,18 @@ void Server::showClients(int fd) {
     }
 }
 
-Channel *Server::findOrMakeChannel(std::string name){
-    for(size_t i = 0; i < channels.size(); i++){
-        if (channels[i].getName() == name){
+void Server::showChannels(int fd){
+    for (size_t i = 0; i < channels.size(); i++){
+        send(fd, ("channel "" :" + channels[i].getName()).c_str(), channels[i].getName().length() + 10, 0);
+    }
+}
+
+Channel* Server::findOrMakeChannel(std::string name) {
+    for (size_t i = 0; i < channels.size(); i++) {
+        if (channels[i].getName() == name) {
             return &channels[i];
         }
     }
-    channels.push_back(Channel(name));
-    return &channels[channels.size() - 1];
+    channels.push_back(name);
+    return &channels.back();
 }

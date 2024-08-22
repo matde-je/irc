@@ -71,4 +71,5 @@ class Server {
 
         Channel *findOrMakeChannel(std::string name);
         void showClients(int fd);
+        void showChannels(int fd);
 };

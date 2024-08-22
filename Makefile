@@ -98,6 +98,14 @@ clean:
 run: re
 		@./ircserv 4555 123
 
+mem: re	
+		valgrind  --log-file="val.log" ./ircserv 4555 123
+
+user:
+		nc localhost 4555
+		user:
+				@echo "PASS 123" | nc localhost 4555
+
 # Rebuild the project
 re: fclean $(name)
 

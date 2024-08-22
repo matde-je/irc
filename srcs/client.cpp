@@ -1,4 +1,5 @@
-#include "irc.hpp"
+#include "../incs/irc.hpp"
+#include "../incs/channel.hpp"
 
 Client::~Client() {}
 Client::Client() {pass = false; channel = NULL;}
@@ -98,12 +99,12 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
     else if (cmd == "JOIN" || cmd == "/join")
         {
             join(fd, args);
-            for (size_t i = 0; i < clients.size(); i++)
-            {
-                if (clients[i].fd == fd){
-                    std::cout << "--------------->" << clients[i].channel->getName() << std::endl;
-                }
-            }
+            // for (size_t i = 0; i < clients.size(); i++)
+            // {
+            //     if (clients[i].fd == fd){
+            //         // std::cout << "--------------->" << clients[i].channel->getName() << std::endl;
+            //     }
+            // }
             return 1;
         }
     else if (cmd == "SHOW" || cmd == "/show")
@@ -112,5 +113,10 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
             showClients(fd); 
             return 1;
         }
+    else if(cmd == "CHANNEL"){
+        std::cout << "Showing channels: \n";
+        showChannels(fd);
+        return 1;
+    }
     return 0;
 }

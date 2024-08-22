@@ -1,4 +1,4 @@
-#include "irc.hpp"
+#include "../incs/irc.hpp"
 
 // /msg <nickname> <message> (private message)
 //or in channel
@@ -51,25 +51,22 @@ void Server::msg(int fd, std::vector<std::string> args) {
 //this as an error
 void Server::join(int fd, std::vector<std::string> args) {
     Channel *channel = findOrMakeChannel(args[0]);
+
     if (is_authentic(fd) != 0) {return ;}
     if (args.size() != 1 || args[0][0] != '#')
        {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; } 
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd) {
             send(fd, "FOUND CLIENT\r\n", 17, 0);
-            int exists = channel->userExists(clients[i]);
-            if (exists == 1) {
-                send(fd, "YOU ARE ALREADY IN THE CHANNEL\r\n", 33,0);
-                return ;}
-            else if(exists == 2){
-                send(fd, "SOMETHING WENT WRONG BUT ITS ALL GOOD NOW :)\r\n", 47,0);
-                channel->fixPartialExistence(clients[i]);
-                return;
-            }
+            // if (channel->isUser(clients[i].name)) {
+            //     send(fd, "YOU ARE ALREADY IN THE CHANNEL\r\n", 33,0);
+            //     return ;}
             if (clients[i].channel != NULL){
-                send(fd, "LEAVING PREVIOUS CHANNEL\r\n", 27, 0);
-                clients[i].channel->KickUser(clients[i].name);
-                clients[i].channel = NULL;
+                // send(fd, "LEAVING PREVIOUS CHANNEL\r\n", 26, 0);
+                // std::cout << "in channel: "<<clients[i].channel->getName() << std::endl;
+                return;
+                // clients[i].channel->KickUser(clients[i].name);
+                // clients[i].channel = NULL;
             }
             clients[i].channel = channel;
             channel->addUser(clients[i]);

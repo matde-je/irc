@@ -1,4 +1,5 @@
-#include "irc.hpp"
+#include "../incs/irc.hpp"
+
 
 void Server::topic(int fd, std::vector<std::string> args)
 {
