@@ -2,12 +2,12 @@
 #include "../incs/channel.hpp"
 
 Client::~Client() {}
-Client::Client() {pass = false; channel = NULL;}
+Client::Client() {pass = false;}
 
 std::string Server::get_nick(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].fd == fd) {
-            if (clients[i].nick != "\0")
+            if (!clients[i].nick.empty())
                 return clients[i].nick;
     }}
     std::stringstream ss;

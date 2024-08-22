@@ -32,7 +32,7 @@ class Client {
         std::string name;
         std::string nick;
         bool pass;
-        Channel *channel;
+        std::string channel;
 };
 
 
@@ -69,7 +69,10 @@ class Server {
         int  has_pass(int fd);
         std::string get_nick(int fd);
 
+        Channel *getChannelFromName(std::string name);
         Channel *findOrMakeChannel(std::string name);
         void showClients(int fd);
         void showChannels(int fd);
+
+        Client *getClientFromFD(int fd);
 };

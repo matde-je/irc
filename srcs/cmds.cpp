@@ -61,7 +61,7 @@ void Server::kick(int fd, std::vector<std::string> args)
 
         // Remove the client from the channel
         channel->KickUser(client->name);
-        client->channel = NULL;
+        client->channel = "";
         send(client->fd, "You have been kicked from the channel\r\n", 36, 0);
 
         // Notify other clients in the channel about the kick

@@ -137,6 +137,15 @@ void Server::init_socket() {
 	fds.push_back(poll); //add server socket to pollfd
 }
 
+Channel *Server::getChannelFromName(std::string name) {
+    for (size_t i = 0; i < channels.size(); i++) {
+        if (channels[i].getName() == name) {
+            return &channels[i];
+        }
+    }
+    return NULL;
+}
+
 //SHOW 
 void Server::showClients(int fd) {
     Client client;
@@ -145,7 +154,7 @@ void Server::showClients(int fd) {
         if (clients[i].fd == fd)
             {client = clients[i]; break ;}
     }
-    Channel *channel = client.channel;
+    Channel *channel = getChannelFromName(client.channel);
     if (channel == NULL){
         send(fd,( "you" + client.name + " are not in a channel\r\n").c_str(), 26 + client.name.length(), 0);
         return;
@@ -160,8 +169,12 @@ void Server::showClients(int fd) {
 }
 
 void Server::showChannels(int fd){
+    Client *client = getClientFromFD(fd);
     for (size_t i = 0; i < channels.size(); i++){
-        send(fd, ("channel "" :" + channels[i].getName()).c_str(), channels[i].getName().length() + 10, 0);
+        if(channels[i].getName() == client->name){
+            send(fd, "You are in this CHANNEL------>", 30, 0);
+        }
+        send(fd, ("channel "" :" + channels[i].getName() + "\r\n").c_str(), channels[i].getName().length() + 12, 0);
     }
 }
 
@@ -173,4 +186,13 @@ Channel* Server::findOrMakeChannel(std::string name) {
     }
     channels.push_back(name);
     return &channels.back();
+}
+
+Client *Server::getClientFromFD(int fd) {
+    for (size_t i = 0; i < clients.size(); i++) {
+        if (clients[i].fd == fd) {
+            return &clients[i];
+        }
+    }
+    return NULL;
 }

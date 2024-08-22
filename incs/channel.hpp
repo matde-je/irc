@@ -16,14 +16,15 @@ class Channel {
         Channel(std::string name);
         std::string getName();
         void setName(std::string name);
-        bool isAdmin(std::string name);
-        bool isUser(std::string name);
-        int KickUser(std::string name);
+        bool isAdmin(std::string nick);
+        bool isUser(std::string nick);
+        int KickUser(std::string nick);
         void addUser(Client user);
         int userExists(Client User);
         void fixPartialExistence(Client user);
         int getClientIndex(std::string name);
         std::vector<Client> getUsers();
+
 
 };
 

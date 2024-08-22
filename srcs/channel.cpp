@@ -17,17 +17,17 @@ void Channel::setName(std::string){
     this->name = name;
 }
 
-bool Channel::isUser(std::string name){
+bool Channel::isUser(std::string nick){
     for (size_t i = 0; i < users.size(); i++){
-        if (users[i].name == name)
+        if (users[i].nick == nick)
             return true;
     }
     return false;
 }
 
-bool Channel::isAdmin(std::string name){
+bool Channel::isAdmin(std::string nick){
     for (size_t i = 0; i < admins.size(); i++){
-        if (admins[i].name == name)
+        if (admins[i].nick == nick)
             return true;
     }
     return false;
@@ -47,9 +47,9 @@ int Channel::getClientIndex(std::string name){
  * @param name 
  * @return int 
  */
-int Channel::KickUser(std::string name){
+int Channel::KickUser(std::string nick){
 
-    if(!isUser(name)){
+    if(!isUser(nick)){
         return -1;
     }
     int index = getClientIndex(name);
@@ -83,11 +83,11 @@ void Channel::addUser(Client user){
 // }
 
 void Channel::fixPartialExistence(Client user){
-    if (user.channel->getName() == this->name){
+    if (user.channel == this->name){
         addUser(user);
     }
     else if(isUser(user.name)){
-        user.channel = this;
+        user.channel = this->getName();
     }
 }
 
