@@ -15,8 +15,6 @@ void Server::mode(int fd, std::vector<std::string> args)
     {
         return;
     }
-
-
 }
 
 // /kick <nickname>
@@ -90,10 +88,32 @@ void Server::kick(int fd, std::vector<std::string> args)
     }
 }
 
+// /invite <nickname>
 void Server::invite(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0 || args.size() != 2)
+    {return;}
+    Client *inviter = getClientFromFD(fd);
+    Channel *channel = getChannelFromName(inviter->channel);
+    if (channel == NULL)
     {
+        send(fd, "You are not in a channel\r\n", 26, 0);
         return;
     }
+    if (!channel->isAdmin(inviter->nick))
+    {
+        send(fd, "You need to be an admin to invite\r\n", 36, 0);
+        return;
+    }
+    Client *invitee = getClientFromNick(args[0]);
+    if (invitee == NULL)
+    {
+        send(fd, "Client not found\r\n", 18, 0);
+        return;
+    }
+    invitee->invites.push_back(channel->getName());
+    send(invitee->fd, "You have been invited to a channel\r\n", 34, 0);
+    channel->addInvitee(invitee->nick);
+    send(fd, "Invite sent\r\n", 13, 0);
+    return ;
 }

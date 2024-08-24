@@ -76,4 +76,6 @@ class Server {
         void showChannels(int fd);
 
         Client *getClientFromFD(int fd);
+
+        Client *getClientFromNick(std::string nick);
 };

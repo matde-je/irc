@@ -124,3 +124,12 @@ void Channel::addAdmin(std::string nick){
         }
     }
 }
+
+void Channel::addInvitee(std::string nick){
+    for (size_t i = 0; i < users.size(); i++){
+        if (users[i].nick == nick){
+            invitees.push_back(users[i]);
+            return;
+        }
+    }
+}

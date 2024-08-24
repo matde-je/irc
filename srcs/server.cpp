@@ -198,3 +198,12 @@ Client *Server::getClientFromFD(int fd) {
     }
     return NULL;
 }
+
+Client *Server::getClientFromNick(std::string nick) {
+    for (size_t i = 0; i < clients.size(); i++) {
+        if (clients[i].nick == nick) {
+            return &clients[i];
+        }
+    }
+    return NULL;
+}

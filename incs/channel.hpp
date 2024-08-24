@@ -9,6 +9,7 @@ class Channel {
         std::vector<Client> users;
         std::vector<Client> admins;
         std::vector<Client> kicked;
+        std::vector<Client> invitees;
     
     public : 
         Channel();
@@ -27,6 +28,7 @@ class Channel {
         Client *getUserFromFD(int fd);
         Client *getUserFromNick(std::string nick);
         void addAdmin(std::string nick);
+        void addInvitee(std::string nick);
 
 };
 
