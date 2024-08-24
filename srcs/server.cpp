@@ -178,16 +178,16 @@ void Server::showChannels(int fd){
     }
 }
 
-int Server::findOrMakeChannel(Channel * channel,std::string name) {
+Channel* Server::findOrMakeChannel(int *newChannel, std::string name) {
     for (size_t i = 0; i < channels.size(); i++) {
         if (channels[i].getName() == name) {
-            channel = &channels[i];
-            return 0;
+            *newChannel = 0;
+            return &channels[i];
         }
     }
-    channels.push_back(name);
-    channel = &channels.back();
-    return 1;
+    channels.push_back(Channel(name));
+    *newChannel = 1;
+    return &channels.back();
 }
 
 Client *Server::getClientFromFD(int fd) {

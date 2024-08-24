@@ -71,7 +71,7 @@ class Server {
         std::string get_nick(int fd);
 
         Channel *getChannelFromName(std::string name);
-        int findOrMakeChannel(Channel *channel, std::string name);
+        Channel *findOrMakeChannel(int *newChannel, std::string name);
         void showClients(int fd);
         void showChannels(int fd);
 

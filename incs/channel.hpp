@@ -10,6 +10,10 @@ class Channel {
         std::vector<Client> admins;
         std::vector<Client> kicked;
         std::vector<Client> invitees;
+        std::string topic;
+        bool InviteOnly;
+        size_t limit;
+        bool topicRestricted;
     
     public : 
         Channel();
@@ -29,7 +33,12 @@ class Channel {
         Client *getUserFromNick(std::string nick);
         void addAdmin(std::string nick);
         void addInvitee(std::string nick);
-
+        void setTopic(std::string topic);
+        std::string getTopic();
+        void removeInvitee(std::string nick);
+        bool isInvitee(std::string nick);
+        bool isTopicRestricted();
+        size_t getLimit();
 };
 
 #endif

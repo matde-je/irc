@@ -3,10 +3,18 @@
 
 Channel::Channel(){
     this->name = "default channel name";
+    this->topic = "default topic";
+    this->topicRestricted = true;
+    this->InviteOnly = false;
+    this->limit = 999;
 }
 
 Channel::Channel(std::string name){
     this->name = name;
+    this->topic = "default topic";
+    this->topicRestricted = true;
+    this->InviteOnly = false;
+    this->limit = 999;
 }
 
 std::string Channel::getName(){
@@ -132,4 +140,37 @@ void Channel::addInvitee(std::string nick){
             return;
         }
     }
+}
+
+void Channel::setTopic(std::string topic){
+    this->topic = topic;
+}
+
+std::string Channel::getTopic(){
+    return this->topic;
+}
+
+void Channel::removeInvitee(std::string nick){
+    for (size_t i = 0; i < invitees.size(); i++){
+        if (invitees[i].nick == nick){
+            invitees.erase(invitees.begin() + i);
+            return;
+        }
+    }
+}
+
+bool Channel::isInvitee(std::string nick){
+    for (size_t i = 0; i < invitees.size(); i++){
+        if (invitees[i].nick == nick)
+            return true;
+    }
+    return false;
+}
+
+bool Channel::isTopicRestricted(){
+    return this->topicRestricted;
+}
+
+size_t Channel::getLimit(){
+    return this->limit;
 }

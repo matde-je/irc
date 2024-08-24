@@ -1,20 +1,39 @@
 #include "../incs/irc.hpp"
 
-
+//TOPIC (to show)or TOPIC <new Topic>(to set)
 void Server::topic(int fd, std::vector<std::string> args)
 {
-    if (is_authentic(fd) != 0 || args.size() != 2)
+    if (is_authentic(fd) != 0)
+    {return;}
+    Client *admin = getClientFromFD(fd);
+    Channel *channel = getChannelFromName(admin->channel);
+    if (channel == NULL)
     {
+        send(fd, "You are not in a channel\r\n", 26, 0);
         return;
     }
+    if (!channel->isAdmin(admin->nick) && channel->isTopicRestricted())
+    {
+        send(fd, "You need to be an admin to set the topic\r\n", 42, 0);
+        return;
+    }
+    if (args.size() == 0)
+    {
+        std::string topic = channel->getTopic();
+        std::string message = "TOPIC " + channel->getName() + " :" + topic + "\r\n";
+        send(fd, message.c_str(), message.size(), 0);
+        return;
+    }
+    std::string new_topic = args[0];
+    channel->setTopic(new_topic);
 }
 
 void Server::mode(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0 || args.size() != 2)
-    {
-        return;
-    }
+    {return;}
+    // Client *admin = getClientFromFD(fd);
+    // Channel *channel = getChannelFromName(admin->channel);
 }
 
 // /kick <nickname>

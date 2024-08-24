@@ -31,7 +31,7 @@
 #
 # REMOVE @ IF DONT WANT SILENT.
 CC = c++
-CFLAGS = -g -Wall -Wextra -Werror -std=c++98 -Iincs
+CFLAGS = -g  -std=c++98 -Iincs#-Wall -Wextra -Werror
 
 # Directories
 SRCDIR = srcs
