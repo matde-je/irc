@@ -6,6 +6,7 @@ Channel::Channel(){
     this->topic = "default topic";
     this->topicRestricted = true;
     this->InviteOnly = false;
+    this->isLimited = false;
     this->limit = 999;
 }
 
@@ -14,6 +15,7 @@ Channel::Channel(std::string name){
     this->topic = "default topic";
     this->topicRestricted = true;
     this->InviteOnly = false;
+    this->isLimited = false;
     this->limit = 999;
 }
 
@@ -173,4 +175,40 @@ bool Channel::isTopicRestricted(){
 
 size_t Channel::getLimit(){
     return this->limit;
+}
+
+bool Channel::isInviteOnly(){
+    return this->InviteOnly;
+}
+
+void Channel::setInviteOnly(bool InviteOnly){
+    this->InviteOnly = InviteOnly;
+}
+
+bool Channel::getisLimited(){
+    return this->isLimited;
+}
+
+void Channel::setisLimited(bool isLimited){
+    this->isLimited = isLimited;
+}
+
+void Channel::setLimit(size_t limit){
+    this->limit = limit;
+}
+
+void Channel::setTopicRestricted(bool topicRestricted){
+    this->topicRestricted = topicRestricted;
+}
+
+void Channel::setPassword(std::string password){
+    this->password = password;
+}
+
+std::string Channel::getPassword(){
+    return this->password;
+}
+
+bool Channel::isPasswordProtected(){
+    return this->passwordProtected;
 }

@@ -32,8 +32,86 @@ void Server::mode(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0 || args.size() != 2)
     {return;}
-    // Client *admin = getClientFromFD(fd);
-    // Channel *channel = getChannelFromName(admin->channel);
+    Client *admin = getClientFromFD(fd);
+    Channel *channel = getChannelFromName(admin->channel);
+    if (channel == NULL)
+    {
+        send(fd, "You are not in a channel\r\n", 26, 0);
+        return;
+    }
+    if (!channel->isAdmin(admin->nick))
+    {
+        send(fd, "You need to be an admin to set the mode\r\n", 42, 0);
+        return;
+    }
+    if (args[0] == "k")// MODE k <password> / MODE 0 (remove password)
+    {
+        if (args[1] == "0")
+        {
+            channel->setPassword("");
+            send(fd, "Password removed\r\n", 18, 0);
+        }
+        else
+        {
+            channel->setPassword(args[1]);
+            send(fd, "Password set\r\n", 14, 0);
+        }
+        return;
+    }
+    if (args[0] == "t")// MODE t +/-(topic restricted)
+    {
+        if (args[1] == "+")
+        {
+            channel->setTopicRestricted(true);
+            send(fd, "Topic restricted mode set\r\n", 28, 0);
+        }
+        else if (args[1] == "-")
+        {
+            channel->setTopicRestricted(false);
+            send(fd, "Topic restricted mode unset\r\n", 30, 0);
+        }
+        return;
+    }
+    if (args[0] == "l")// MODE l <limit> / MODE 0(set user limit)
+    {
+        if (args[1] == "0")
+        {
+            channel->setisLimited(false);
+            send(fd, "User limit removed\r\n", 20, 0);
+        }
+        else if(args[1] == "1")
+        {
+            channel->setisLimited(true);
+            channel->setLimit(std::stoi(args[2]));
+            send(fd, "User limit set\r\n", 16, 0);
+        }
+        return;
+    }
+    if (args[0] == "i")// MODE i +/-(invite only)
+    {
+        if (args[1] == "+")
+        {
+            channel->setInviteOnly(true);
+            send(fd, "Invite only mode set\r\n", 23, 0);
+        }
+        else if (args[1] == "-")
+        {
+            channel->setInviteOnly(false);
+            send(fd, "Invite only mode unset\r\n", 25, 0);
+        }
+        return;
+    }
+    if (args[0] == "o")// MODE o <nickname> (give operator privileges)
+    {
+        if (!channel->isUser(args[1]))
+        {
+            send(fd, "Client is not in the channel\r\n", 29, 0);
+            return;
+        }
+        channel->addAdmin(args[1]);
+        send(fd, "Operator privileges given\r\n", 29, 0);
+        return;
+    }
 }
 
 // /kick <nickname>

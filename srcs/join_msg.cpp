@@ -80,9 +80,9 @@ void Server::join(int fd, std::vector<std::string> args)
     {
         return;
     }
-    if (args.size() != 1 || args[0][0] != '#')
+    if ((args.size() != 1 && args.size() != 2) || args[0][0] != '#')
     {
-        send(fd, "Try JOIN #channel\r\n", 21, 0);
+        send(fd, "Try JOIN #channel <password>\r\n", 21, 0);
         return;
     }
     for (size_t i = 0; i < clients.size(); i++)
@@ -97,11 +97,38 @@ void Server::join(int fd, std::vector<std::string> args)
             }
             if (newChannel == 0)
             {
-                if (channel->getUsers().size() >= channel->getLimit())
+                if (channel->getisLimited() && channel->getUsers().size() >= channel->getLimit())
                 {
 
                     const char *channelFullMsg = "CHANNEL IS FULL\r\n";
                     send(fd, channelFullMsg, strlen(channelFullMsg), 0);
+                    return;
+                }
+            }
+            if (channel->isInvitee(clients[i].nick) == false && channel->isInviteOnly() == true)
+            {
+                send(fd, "You are not invited to this channel\r\n", 38, 0);
+                return;
+            }
+            if (channel->isPasswordProtected() == true)
+            {
+                if (args.size() != 2)
+                {
+                    if (channel->isInvitee(clients[i].nick) == true)
+                    {
+                        send(fd, "You are invited to this channel and so do not need the password\r\n", 67, 0);
+                    }
+                    else
+                        send(fd, "This channel is password protected\r\n", 36, 0);
+                    return;
+                }
+                else if (channel->getPassword() == args[1])
+                {
+                    send(fd, "Correct password\r\n", 18, 0);
+                }
+                else
+                {
+                    send(fd, "Incorrect password\r\n", 20, 0);
                     return;
                 }
             }

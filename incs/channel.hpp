@@ -12,8 +12,11 @@ class Channel {
         std::vector<Client> invitees;
         std::string topic;
         bool InviteOnly;
+        bool isLimited;
         size_t limit;
         bool topicRestricted;
+        bool passwordProtected;
+        std::string password;
     
     public : 
         Channel();
@@ -39,6 +42,15 @@ class Channel {
         bool isInvitee(std::string nick);
         bool isTopicRestricted();
         size_t getLimit();
+        bool isInviteOnly();
+        void setLimit(size_t limit);
+        bool getisLimited();
+        void setInviteOnly(bool inviteOnly);
+        void setisLimited(bool isLimited);
+        void setTopicRestricted(bool topicRestricted);
+        void setPassword(std::string password);
+        std::string getPassword();
+        bool isPasswordProtected();
 };
 
 #endif
