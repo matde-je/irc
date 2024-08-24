@@ -25,58 +25,62 @@ void Server::mode(int fd, std::vector<std::string> args)
     }
 }
 
-// /kick #channel <nickname>
+// /kick <nickname>
 void Server::kick(int fd, std::vector<std::string> args)
 {
-    std::cout << "attemptred kick" << std::endl;
-    if (is_authentic(fd) == 0 && args.size() == 2)
+    std::cout << "attempted kick" << std::endl;
+    if (is_authentic(fd) == 0 && args.size() == 1)
     {
-        Channel *channel = NULL;
-        for (size_t i = 0; i < channels.size(); i++)
+        std::string nick = args[0];
+        // Find the client in the channel
+        Client* ronaldo = getClientFromFD(fd);
+
+        std::string channelName = ronaldo->channel;
+
+        // Find the channel
+        Channel* channel = NULL;
+        for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
         {
-            if (channels[i].getName() == args[0])
-                channel = &channels[i];
+            if (it->getName() == channelName)
+            {
+                channel = &(*it);
+                break;
+            }
         }
+
         if (channel == NULL)
         {
             send(fd, "The Channel indicated cannot be found\r\n", 39, 0);
             return;
         }
-        Client *client = NULL;
 
-        // Find the client in the clients vector
-        for (size_t i = 0; i < clients.size(); i++)
+        Client *ball = NULL;
+        ball = channel->getUserFromNick(nick);
+        if (ball == NULL)
         {
-            if (clients[i].name == args[1])
-            {
-                client = &clients[i];
-            }
-        }
-
-        if (client == NULL)
-        {
-            std::string error_message = "Client " + args[1] + " not found in channel: " + channel->getName() + "\r\n";
+            std::string error_message = "Client " + nick + " not found in channel: " + channel->getName() + "\r\n";
             send(fd, error_message.c_str(), error_message.size(), 0);
+            return;
         }
 
         // Remove the client from the channel
-        channel->KickUser(client->name);
-        client->channel = "";
-        send(client->fd, "You have been kicked from the channel\r\n", 36, 0);
-
+        channel->KickUser(nick);
+        ball->channel = "";
+        send(ball->fd, "You have been kicked from the channel\r\n", 36, 0);
+        std::vector<Client> users = channel->getUsers();
         // Notify other clients in the channel about the kick
-        for (size_t j = 0; j < channel->getUsers().size(); j++)
+        for (size_t i = 0; i < users.size(); i++)
         {
-                std::string notify = client->name + " has been kicked from " + channel->getName() + "\r\n";
-                send(channel->getUsers()[j].fd, notify.c_str(), notify.size(), 0);
-
+            if (users[i].nick != nick)
+            {
+                std::string notify = nick + " has been kicked from " + channel->getName() + "\r\n";
+                send(users[i].fd, notify.c_str(), notify.size() + 1, 0);
+            }
         }
 
         // Send a kick message to the client
-        std::string kick_message = "KICK " + channel->getName() + " " + client->name + "\r\n";
+        std::string kick_message = "KICK " + channel->getName() + " " + nick + "\r\n";
         send(fd, kick_message.c_str(), kick_message.size(), 0);
-
-        // TODO: Implement any additional logic for handling the kick
 
         return;
     }

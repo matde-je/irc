@@ -59,6 +59,7 @@ name = ircserv
 
 # Build the executable
 $(name): $(OBJS)
+		clear
 		@$(CC) $(CFLAGS) $(OBJS) -o $(name)
 
 # Compile source files into object files

@@ -99,12 +99,6 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
     else if (cmd == "JOIN" || cmd == "/join")
         {
             join(fd, args);
-            // for (size_t i = 0; i < clients.size(); i++)
-            // {
-            //     if (clients[i].fd == fd){
-            //         // std::cout << "--------------->" << clients[i].channel->getName() << std::endl;
-            //     }
-            // }
             return 1;
         }
     else if (cmd == "SHOW" || cmd == "/show")

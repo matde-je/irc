@@ -11,4 +11,5 @@
   sleep 1
   echo "JOIN #channel"
   sleep 1
+  echo "KICK big7"
 } | nc localhost 4555

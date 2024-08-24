@@ -22,8 +22,10 @@ class Channel {
         void addUser(Client user);
         int userExists(Client User);
         void fixPartialExistence(Client user);
-        int getClientIndex(std::string name);
+        int getClientIndex(std::string nick);
         std::vector<Client> getUsers();
+        Client *getUserFromFD(int fd);
+        Client *getUserFromNick(std::string nick);
 
 
 };

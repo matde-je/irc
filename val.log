@@ -1,34 +1,15 @@
-==9216== Memcheck, a memory error detector
-==9216== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==9216== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==9216== Command: ./ircserv 4555 123
-==9216== Parent PID: 9215
-==9216== 
-==9216== Syscall param socketcall.sendto(msg) points to uninitialised byte(s)
-==9216==    at 0x4BD5A60: send (send.c:28)
-==9216==    by 0x11538F: Server::join(int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >) (join_msg.cpp:75)
-==9216==    by 0x11331E: Server::send_cmd(int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >) (client.cpp:101)
-==9216==    by 0x10C6FC: Server::parse(int, char*) (server.cpp:84)
-==9216==    by 0x10CC54: Server::loop() (server.cpp:110)
-==9216==    by 0x10BB40: main (main.cpp:16)
-==9216==  Address 0x4dd5b82 is 18 bytes inside a block of size 31 alloc'd
-==9216==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==9216==    by 0x49AFF3D: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==9216==    by 0x49B18BF: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==9216==    by 0x10E37F: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) (basic_string.h:6136)
-==9216==    by 0x115337: Server::join(int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >) (join_msg.cpp:75)
-==9216==    by 0x11331E: Server::send_cmd(int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >) (client.cpp:101)
-==9216==    by 0x10C6FC: Server::parse(int, char*) (server.cpp:84)
-==9216==    by 0x10CC54: Server::loop() (server.cpp:110)
-==9216==    by 0x10BB40: main (main.cpp:16)
-==9216== 
-==9216== 
-==9216== HEAP SUMMARY:
-==9216==     in use at exit: 0 bytes in 0 blocks
-==9216==   total heap usage: 62 allocs, 62 frees, 80,031 bytes allocated
-==9216== 
-==9216== All heap blocks were freed -- no leaks are possible
-==9216== 
-==9216== Use --track-origins=yes to see where uninitialised values come from
-==9216== For lists of detected and suppressed errors, rerun with: -s
-==9216== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+==9637== Memcheck, a memory error detector
+==9637== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==9637== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==9637== Command: ./ircserv 4555 123
+==9637== Parent PID: 9636
+==9637== 
+==9637== 
+==9637== HEAP SUMMARY:
+==9637==     in use at exit: 0 bytes in 0 blocks
+==9637==   total heap usage: 184 allocs, 184 frees, 83,641 bytes allocated
+==9637== 
+==9637== All heap blocks were freed -- no leaks are possible
+==9637== 
+==9637== For lists of detected and suppressed errors, rerun with: -s
+==9637== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

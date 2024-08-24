@@ -33,9 +33,9 @@ bool Channel::isAdmin(std::string nick){
     return false;
 }
 
-int Channel::getClientIndex(std::string name){
+int Channel::getClientIndex(std::string nick){
     for(size_t i = 0; i < users.size(); i++){
-        if (users[i].name == name)
+        if (users[i].nick == nick)
             return i;
     }
     return 0;
@@ -97,4 +97,21 @@ std::vector<Client> Channel::getUsers(){
 
 Channel::~Channel(){
 
+}
+
+Client *Channel::getUserFromNick(std::string nick){
+    for (size_t i = 0; i < users.size(); i++){
+        if (users[i].nick == nick)
+            return &users[i];
+    }
+    return NULL;
+}
+
+Client *Channel::getUserFromFD(int fd){
+    for (size_t i = 0; i < users.size(); i++) {
+        if (users[i].fd == fd) {
+            return &users[i];
+        }
+    }
+    return NULL;
 }
