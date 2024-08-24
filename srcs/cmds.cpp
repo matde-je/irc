@@ -3,11 +3,7 @@
 
 void Server::topic(int fd, std::vector<std::string> args)
 {
-    if (is_authentic(fd) != 0)
-    {
-        return;
-    }
-    if (args.size() != 2)
+    if (is_authentic(fd) != 0 || args.size() != 2)
     {
         return;
     }
@@ -15,14 +11,12 @@ void Server::topic(int fd, std::vector<std::string> args)
 
 void Server::mode(int fd, std::vector<std::string> args)
 {
-    if (is_authentic(fd) != 0)
+    if (is_authentic(fd) != 0 || args.size() != 2)
     {
         return;
     }
-    if (args.size() != 2)
-    {
-        return;
-    }
+
+
 }
 
 // /kick <nickname>
@@ -39,11 +33,11 @@ void Server::kick(int fd, std::vector<std::string> args)
 
         // Find the channel
         Channel* channel = NULL;
-        for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+        for (size_t i = 0; i < channels.size(); i++)
         {
-            if (it->getName() == channelName)
+            if (channels[i].getName() == channelName)
             {
-                channel = &(*it);
+                channel = &channels[i];
                 break;
             }
         }
@@ -51,6 +45,16 @@ void Server::kick(int fd, std::vector<std::string> args)
         if (channel == NULL)
         {
             send(fd, "The Channel indicated cannot be found\r\n", 39, 0);
+            return;
+        }
+
+        if(!channel->isAdmin(ronaldo->nick)){
+            send(fd, "To KICK another user you need to be an admin\r\n", 48, 0);
+            return;
+        }
+
+        if(channel->isAdmin(nick)){
+            send(fd, "You cannot kick an admin\r\n", 27, 0);
             return;
         }
 
@@ -88,11 +92,7 @@ void Server::kick(int fd, std::vector<std::string> args)
 
 void Server::invite(int fd, std::vector<std::string> args)
 {
-    if (is_authentic(fd) != 0)
-    {
-        return;
-    }
-    if (args.size() != 2)
+    if (is_authentic(fd) != 0 || args.size() != 2)
     {
         return;
     }

@@ -115,3 +115,12 @@ Client *Channel::getUserFromFD(int fd){
     }
     return NULL;
 }
+
+void Channel::addAdmin(std::string nick){
+    for (size_t i = 0; i < users.size(); i++){
+        if (users[i].nick == nick){
+            admins.push_back(users[i]);
+            return;
+        }
+    }
+}

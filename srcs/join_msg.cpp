@@ -50,7 +50,8 @@ void Server::msg(int fd, std::vector<std::string> args) {
 //open another file with channel
 //this as an error
 void Server::join(int fd, std::vector<std::string> args) {
-    Channel *channel = findOrMakeChannel(args[0]);
+    Channel *channel = NULL;
+    int newChannel = findOrMakeChannel(channel, args[0]);
 
     if (is_authentic(fd) != 0) {return ;}
     if (args.size() != 1 || args[0][0] != '#')
@@ -66,15 +67,16 @@ void Server::join(int fd, std::vector<std::string> args) {
                 std::cout << "in channel: "<<clients[i].channel << std::endl;
                 getChannelFromName(clients[i].channel)->KickUser(clients[i].nick);
                 clients[i].channel = "";
-                // return;
-                // clients[i].channel->KickUser(clients[i].name);
-                // clients[i].channel = NULL;
             }
             clients[i].channel = channel->getName();
             for(size_t j = 0; j < channel->getUsers().size(); j++){
                 send(channel->getUsers()[j].fd, (clients[i].nick + " has joined " + args[0] + "\r\n").c_str(), clients[i].nick.length() + args[0].length() + 15, 0);
             }
             channel->addUser(clients[i]);
+            if (newChannel == 1){
+                channel->addAdmin(clients[i].nick);
+                send(clients[i].fd, "Channel created and you are the admin\r\n", 40, 0);
+            }
             std::string join_message = ":" + clients[i].nick + " JOIN " + args[0] + "\r\n";
             std::cout << clients[i].nick << ": joined " << args[0] << std::endl;
             send(fd, join_message.c_str(), join_message.size(), 0);

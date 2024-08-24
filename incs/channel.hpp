@@ -26,7 +26,7 @@ class Channel {
         std::vector<Client> getUsers();
         Client *getUserFromFD(int fd);
         Client *getUserFromNick(std::string nick);
-
+        void addAdmin(std::string nick);
 
 };
 
