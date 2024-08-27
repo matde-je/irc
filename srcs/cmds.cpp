@@ -82,7 +82,7 @@ void Server::mode(int fd, std::vector<std::string> args)
         else if(args[1] == "1")
         {
             channel->setisLimited(true);
-            channel->setLimit(std::stoi(args[2]));
+            channel->setLimit(atoi(args[2].c_str()));
             send(fd, "User limit set\r\n", 16, 0);
         }
         return;
@@ -188,7 +188,7 @@ void Server::kick(int fd, std::vector<std::string> args)
 // /invite <nickname>
 void Server::invite(int fd, std::vector<std::string> args)
 {
-    if (is_authentic(fd) != 0 || args.size() != 2)
+    if (is_authentic(fd) != 0 || args.size() != 1)
     {return;}
     Client *inviter = getClientFromFD(fd);
     Channel *channel = getChannelFromName(inviter->channel);
@@ -209,7 +209,9 @@ void Server::invite(int fd, std::vector<std::string> args)
         return;
     }
     invitee->invites.push_back(channel->getName());
-    send(invitee->fd, "You have been invited to a channel\r\n", 34, 0);
+    send(invitee->fd, "You have been invited to the channel: ", 34, 0);
+    send(invitee->fd, (channel->getName() + "\r\n").c_str(), channel->getName().size() + 2, 0);
+
     channel->addInvitee(invitee->nick);
     send(fd, "Invite sent\r\n", 13, 0);
     return ;

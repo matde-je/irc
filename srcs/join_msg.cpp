@@ -107,7 +107,13 @@ void Server::join(int fd, std::vector<std::string> args)
             }
             if (channel->isInvitee(clients[i].nick) == false && channel->isInviteOnly() == true)
             {
-                send(fd, "You are not invited to this channel\r\n", 38, 0);
+                if (!channel->isInvitee(clients[i].nick))
+                {
+                    send(fd, "You are not invited to this channel\r\n", 38, 0);
+                    return;
+                }
+
+                send(fd, "You are not invited to this channel and it is Invite only\r\n", 60, 0);
                 return;
             }
             if (channel->isPasswordProtected() == true)
@@ -132,7 +138,7 @@ void Server::join(int fd, std::vector<std::string> args)
                     return;
                 }
             }
-            if (clients[i].channel.empty() == false)
+            if (!clients[i].channel.empty())
             {
                 send(fd, "LEAVING PREVIOUS CHANNEL\r\n", 26, 0);
                 std::cout << "in channel: " << clients[i].channel << std::endl;

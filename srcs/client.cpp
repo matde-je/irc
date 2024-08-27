@@ -79,7 +79,7 @@ int    Server::is_authentic(int fd) {
 }
 
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
-    std::cout << "Sending command: '" << cmd << "'" << std::endl;
+    // std::cout << "Sending command: '" << cmd << "'" << std::endl;
     if (cmd == "PASS") 
         {pass(fd, args); return 1;}
     else if (cmd == "USER")

@@ -48,13 +48,13 @@ int Channel::getClientIndex(std::string nick){
         if (users[i].nick == nick)
             return i;
     }
-    return 0;
+    return -1;
 }
 
 /**
  * @brief -1 means the user doesnt exist, 0 means all okay
  * 
- * @param name 
+ * @param nick 
  * @return int 
  */
 int Channel::KickUser(std::string nick){
@@ -62,8 +62,12 @@ int Channel::KickUser(std::string nick){
     if(!isUser(nick)){
         return -1;
     }
-    int index = getClientIndex(name);
-    std::cout << "client: " << name << ", removed from channel: " << getName() << std::endl;
+    int index = getClientIndex(nick);
+    if (index  == -1){
+        std::cout << "unable to remove " << nick << " from the channel " << getName() << std::endl;
+        return -1;
+    }
+    std::cout << "client: " << nick << ", removed from channel: " << getName() << std::endl;
     users.erase(users.begin() + index);
     return 0;
 }
