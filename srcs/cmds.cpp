@@ -212,7 +212,7 @@ void Server::invite(int fd, std::vector<std::string> args)
     send(invitee->fd, "You have been invited to the channel: ", 34, 0);
     send(invitee->fd, (channel->getName() + "\r\n").c_str(), channel->getName().size() + 2, 0);
 
-    channel->addInvitee(invitee->nick);
+    channel->addInvitee(*invitee);
     send(fd, "Invite sent\r\n", 13, 0);
     return ;
 }

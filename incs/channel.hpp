@@ -35,7 +35,7 @@ class Channel {
         Client *getUserFromFD(int fd);
         Client *getUserFromNick(std::string nick);
         void addAdmin(std::string nick);
-        void addInvitee(std::string nick);
+        void addInvitee(Client client);
         void setTopic(std::string topic);
         std::string getTopic();
         void removeInvitee(std::string nick);
