@@ -87,28 +87,28 @@ std::string to_uppercase(std::string str) {
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
     // std::cout << "Sending command: '" << cmd << "'" << std::endl;
     cmd = to_uppercase(cmd); // Ensure command is case-insensitive
-    if (cmd == "PASS"|| cmd == "/pass") 
+    if (cmd == "PASS"|| cmd == "/PASS") 
         {pass(fd, args); return 1;}
-    else if (cmd == "USER"|| cmd == "/user")
+    else if (cmd == "USER"|| cmd == "/USER")
         {user(fd, args); return 1;}
-    else if (cmd == "NICK" || cmd == "/nick")
+    else if (cmd == "NICK" || cmd == "/NICK")
         {nick(fd, args); return 1;}
-    else if (cmd == "TOPIC" || cmd == "/topic")
+    else if (cmd == "TOPIC" || cmd == "/TOPIC")
         {topic(fd, args); return 1;}
-    else if (cmd == "MODE" || cmd == "/mode")
+    else if (cmd == "MODE" || cmd == "/MODE")
         {mode(fd, args); return 1;}
-    else if (cmd == "KICK" || cmd == "/kick")
+    else if (cmd == "KICK" || cmd == "/KICK")
         {kick(fd, args); return 1;}
-    else if (cmd == "INVITE" || cmd == "/invite")
+    else if (cmd == "INVITE" || cmd == "/INVITE")
         {invite(fd, args); return 1;}
-    else if (cmd == "PRIVMSG" || cmd == "/msg")
+    else if (cmd == "PRIVMSG" || cmd == "/PRIVMSG")
         {msg(fd, args); return 1;}
-    else if (cmd == "JOIN" || cmd == "/join")
+    else if (cmd == "JOIN" || cmd == "/jJOINoin")
         {
             join(fd, args);
             return 1;
         }
-    else if (cmd == "SHOW" || cmd == "/show")
+    else if (cmd == "SHOW" || cmd == "/SHOW")
         {
             std::cout << "Showing clients\n";
             showClients(fd); 

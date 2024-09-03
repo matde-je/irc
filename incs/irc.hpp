@@ -82,4 +82,6 @@ class Server {
         Client *getClientFromFD(int fd);
 
         Client *getClientFromNick(std::string nick);
+
+        void joinForSure(std::string channelName, int fd, int newChannel, Channel *channel, Client *client);
 };

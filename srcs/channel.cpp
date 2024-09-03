@@ -9,6 +9,7 @@ Channel::Channel()
     this->InviteOnly = false;
     this->isLimited = false;
     this->limit = 999;
+    this->passwordProtected = false;
 }
 
 Channel::Channel(std::string name)
@@ -19,6 +20,7 @@ Channel::Channel(std::string name)
     this->InviteOnly = false;
     this->isLimited = false;
     this->limit = 999;
+    this->passwordProtected = false;
 }
 
 std::string Channel::getName()

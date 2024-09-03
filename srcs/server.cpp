@@ -55,39 +55,32 @@ void Server::new_client() {
 	fds.push_back(poll);
 }
 
-
 void Server::parse(int fd, const char *buf) {
     std::string str = buf;
     if (!str.empty() && str[str.length() - 1] == '\n') 
         str.erase(str.length() - 1); 
     if (!str.empty() && str[str.length() - 1] == '\r') 
         str.erase(str.length() - 1); 
-
-    if (str.empty()) {
-        return; // Ignore empty commands
-    }
-
+    //std::cout << buf << std::endl;
     std::stringstream ss(str);
     std::string command;
-    while (std::getline(ss, command, '\n')) {
+    while (std::getline(ss, command, '\n')) { //split the string into individual commands based on '\n'
         if (!command.empty() && command[command.length() - 1] == '\r') 
             command.erase(command.length() - 1);
-
         size_t start = command.find_first_not_of("\t\v "); 
         if (start == std::string::npos) 
-            continue;
-
-        std::string cmd = command.substr(start); 
+            continue; //no command provided
+        std::string cmd = command.substr(start); //extract the command
         std::vector<std::string> arglist;
         size_t end = cmd.find_first_of(" ");
         if (end != std::string::npos) {
-            std::string args = cmd.substr(end + 1);
+            std::string args = cmd.substr(end + 1); //get the rest of the string
+            //std::cout << "passed: " << cmd << " " << args << std::endl;
             std::stringstream argStream(args);
             std::string arg;
             while (std::getline(argStream, arg, ' ')) {
-                if (!arg.empty()) 
-                    arglist.push_back(arg); 
-            }
+                if (!arg.empty())
+                    arglist.push_back(arg); }
             send_cmd(fd, cmd.substr(0, end), arglist);
         } else {
             send_cmd(fd, cmd, arglist);
@@ -96,42 +89,30 @@ void Server::parse(int fd, const char *buf) {
 }
 
 
-
-
 void Server::loop() {
     while (Server::signal == false) {
-        if (poll(&fds[0], fds.size(), -1) == -1 && Server::signal == false) {
-            std::cerr << "poll() failed.\n"; 
-            return;
-        }
-
+        if (poll(&fds[0], fds.size(), -1) == -1 && Server::signal == false) //block indefinitely until an event occurs 
+            {std::cerr << "poll() failed.\n"; return;}
         for (int i = 0; i < (int)fds.size(); i++) {
-            if (fds[i].revents & POLLIN) {
-                if (fds[i].fd == socketfd) 
-                    new_client(); // New connection
+            if (fds[i].revents & POLLIN) { //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
+                if (fds[i].fd == socketfd) //POLLIN on the server socket file descriptor indicates that there is a new incoming connection, not new data
+                    new_client();
                 else {
                     char buf[4097];
-                    int r = recv(fds[i].fd, buf, 4096, 0);
+                    int r = recv(fds[i].fd, buf, 4096, 0); //receive new data from fd that changed
                     if (r <= 0) {
                         std::cout << get_nick(fds[i].fd) << ": went away\n";
                         clear_client(fds[i].fd);
                         close(fds[i].fd);
-                    } else {
-                        buf[r] = '\0';
-                        client_buffers[fds[i].fd] += buf;
-                        size_t pos;
-                        while ((pos = client_buffers[fds[i].fd].find("\r\n")) != std::string::npos) {
-                            std::string full_command = client_buffers[fds[i].fd].substr(0, pos);
-                            client_buffers[fds[i].fd].erase(0, pos + 2);  // Remove processed command
-                            parse(fds[i].fd, full_command.c_str());
-                        }
                     }
-                }
-            }
-        }
-    }
+                    else {
+                        buf[r] = '\0';
+                        parse(fds[i].fd, buf);}
+        }}}}
     close_fds();
 }
+
+
 void Server::init_socket() {
 
     socketfd = socket(AF_INET, SOCK_STREAM, 0); //create server socket

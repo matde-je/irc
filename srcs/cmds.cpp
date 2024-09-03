@@ -1,26 +1,21 @@
 #include "../incs/irc.hpp"
 
-// TOPIC (to show)or TOPIC <new Topic>(to set)
+//TOPIC (to show)or TOPIC <new Topic>(to set)
 void Server::topic(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0)
-    {
-        return;
-    }
-
-    Client *client = getClientFromFD(fd);
-    Channel *channel = getChannelFromName(client->channel);
-
+    {return;}
+    Client *admin = getClientFromFD(fd);
+    Channel *channel = getChannelFromName(admin->channel);
     if (channel == NULL)
     {
-        std::string message = ":yourserver.com 442 " + client->nick + " :You're not on that channel\r\n";
+        std::string message = ":yourserver.com 442 " + admin->nick + " :You're not on that channel\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-
-    if (!channel->isAdmin(client->nick) && channel->isTopicRestricted())
+    if (!channel->isAdmin(admin->nick) && channel->isTopicRestricted())
     {
-        std::string message = ":yourserver.com 482 " + client->nick + " " + channel->getName() + " :You're not a channel operator\r\n";
+        std::string message = ":yourserver.com 482 " + admin->nick + " " + channel->getName() + " :You're not a channel operator\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
@@ -30,23 +25,21 @@ void Server::topic(int fd, std::vector<std::string> args)
         std::string topic = channel->getTopic();
         if (topic.empty())
         {
-            std::string message = ":yourserver.com 331 " + client->nick + " " + channel->getName() + " :No topic is set\r\n";
+            std::string message = ":yourserver.com 331 " + admin->nick + " " + channel->getName() + " :No topic is set\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
         else
         {
-            std::string message = ":yourserver.com 332 " + client->nick + " " + channel->getName() + " :" + topic + "\r\n";
+            std::string message = ":yourserver.com 332 " + admin->nick + " " + channel->getName() + " :" + topic + "\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
         return;
     }
 
-    // Set the new topic
     std::string new_topic = args[0];
     channel->setTopic(new_topic);
-
-    // Notify all channel members about the new topic
-    std::string topic_message = ":" + client->nick + "!" + client->name + "@" + client->ip + " TOPIC " + channel->getName() + " :" + new_topic + "\r\n";
+        // Notify all channel members about the new topic
+    std::string topic_message = ":" + admin->nick + "!" + admin->name + "@" + admin->ip + " TOPIC " + channel->getName() + " :" + new_topic + "\r\n";
     std::vector<Client> members = channel->getUsers();
     std::vector<Client>::iterator it;
     for (it = members.begin(); it != members.end(); ++it)
@@ -57,11 +50,10 @@ void Server::topic(int fd, std::vector<std::string> args)
 
 void Server::mode(int fd, std::vector<std::string> args)
 {
-    if (is_authentic(fd) != 0 || args.size() < 2) // Expect at least 2 arguments
+    if (is_authentic(fd) != 0 || args.size() < 2)
     {
         return;
     }
-
     Client *admin = getClientFromFD(fd);
     Channel *channel = getChannelFromName(admin->channel);
     if (channel == NULL)
@@ -76,7 +68,6 @@ void Server::mode(int fd, std::vector<std::string> args)
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-
     if (args[0] == "k") // MODE k <password> / MODE 0 (remove password)
     {
         if (args[1] == "0")
@@ -129,7 +120,6 @@ void Server::mode(int fd, std::vector<std::string> args)
         }
         return;
     }
-
     if (args[0] == "i") // MODE i +/-(invite only)
     {
         if (args[1] == "+")
@@ -146,7 +136,6 @@ void Server::mode(int fd, std::vector<std::string> args)
         }
         return;
     }
-
     if (args[0] == "o") // MODE o <nickname> (give operator privileges)
     {
         if (!channel->isUser(args[1]))
@@ -160,8 +149,7 @@ void Server::mode(int fd, std::vector<std::string> args)
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-
-    // Handle unknown mode requests
+        // Handle unknown mode requests
     std::string unknown_mode = ":yourserver.com 472 " + admin->nick + " " + channel->getName() + " :Unknown mode flag\r\n";
     send(fd, unknown_mode.c_str(), unknown_mode.size(), 0);
 }
@@ -170,53 +158,65 @@ void Server::mode(int fd, std::vector<std::string> args)
 void Server::kick(int fd, std::vector<std::string> args)
 {
     std::cout << "attempted kick" << std::endl;
-    
-    // Check if the user is authenticated and there is exactly one argument
+        // Check if the user is authenticated and there is exactly one argument
     if (is_authentic(fd) != 0 || args.size() != 1)
     {
         std::string message = ":yourserver.com 461 " + getClientFromFD(fd)->nick + " KICK :Not enough parameters\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-    
-    std::string nick = args[0];
-    Client *admin = getClientFromFD(fd);
-    Channel *channel = getChannelFromName(admin->channel);
+
+        std::string nick = args[0];
+        // Find the client in the channel
+        Client* ronaldo = getClientFromFD(fd);
+
+    Channel *channel = getChannelFromName(ronaldo->channel);
+
+        // Find the channel
+        // Channel* channel = NULL;
+        // for (size_t i = 0; i < channels.size(); i++)
+        // {
+        //     if (channels[i].getName() == channelName)
+        //     {
+        //         channel = &channels[i];
+        //         break;
+        //     }
+        // }
 
     if (channel == NULL)
     {
-        std::string message = ":yourserver.com 403 " + admin->nick + " " + admin->channel + " :No such channel\r\n";
+        std::string message = ":yourserver.com 403 " + ronaldo->nick + " " + ronaldo->channel + " :No such channel\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
 
-    if (!channel->isAdmin(admin->nick))
+    if (!channel->isAdmin(ronaldo->nick))
     {
-        std::string message = ":yourserver.com 482 " + admin->nick + " " + channel->getName() + " :You're not a channel operator\r\n";
+        std::string message = ":yourserver.com 482 " + ronaldo->nick + " " + channel->getName() + " :You're not a channel operator\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-
     if (channel->isAdmin(nick))
     {
-        std::string message = ":yourserver.com 482 " + admin->nick + " " + channel->getName() + " :Cannot kick an admin\r\n";
+        std::string message = ":yourserver.com 482 " + ronaldo->nick + " " + channel->getName() + " :Cannot kick an admin\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
 
-    Client *clientToKick = channel->getUserFromNick(nick);
-    if (clientToKick == NULL)
+        Client *ball = NULL;
+        ball = channel->getUserFromNick(nick);
+    if (ball == NULL)
     {
-        std::string message = ":yourserver.com 441 " + admin->nick + " " + channel->getName() + " " + nick + " :They aren't on this channel\r\n";
+        std::string message = ":yourserver.com 441 " + ronaldo->nick + " " + channel->getName() + " " + nick + " :They aren't on this channel\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
 
-    // Remove the client from the channel and update their state
-    channel->KickUser(nick);
-    clientToKick->channel = "";
+        // Remove the client from the channel
+        channel->KickUser(nick);
+        ball->channel = "";
     std::string kickMessage = ":yourserver.com KICK " + channel->getName() + " " + nick + " :You have been kicked from the channel\r\n";
-    send(clientToKick->fd, kickMessage.c_str(), kickMessage.size(), 0);
+    send(ball->fd, kickMessage.c_str(), kickMessage.size(), 0);
 
     // Notify other clients in the channel
     std::vector<Client> users = channel->getUsers();
@@ -224,7 +224,7 @@ void Server::kick(int fd, std::vector<std::string> args)
     {
         if (users[i].nick != nick)
         {
-            std::string notifyMessage = ":" + admin->nick + "!" + admin->name + "@" + admin->ip + " KICK " + channel->getName() + " " + nick + " :You have been kicked from the channel\r\n";
+            std::string notifyMessage = ":" + ronaldo->nick + "!" + ronaldo->name + "@" + ronaldo->ip + " KICK " + channel->getName() + " " + nick + " :You have been kicked from the channel\r\n";
             send(users[i].fd, notifyMessage.c_str(), notifyMessage.size(), 0);
         }
     }
@@ -232,6 +232,8 @@ void Server::kick(int fd, std::vector<std::string> args)
     // Confirm the kick action to the admin
     std::string adminMessage = ":yourserver.com KICK " + channel->getName() + " " + nick + " :Client has been kicked\r\n";
     send(fd, adminMessage.c_str(), adminMessage.size(), 0);
+        return;
+    
 }
 
 // /invite <nickname>

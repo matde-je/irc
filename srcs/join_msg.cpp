@@ -5,7 +5,6 @@
 // open new page
 void Server::msg(int fd, std::vector<std::string> args)
 {
-    // Ensure the user is authenticated
     if (is_authentic(fd) != 0 || args.size() < 2)
     {
         std::string error_message = ":yourserver.com 411 " + getClientFromFD(fd)->nick + " :No recipient given\r\n";
@@ -13,55 +12,100 @@ void Server::msg(int fd, std::vector<std::string> args)
         return;
     }
 
-    std::string recipient = args[0];
-    std::string content;
-    for (size_t j = 1; j < args.size(); ++j)
-    {
-        content += args[j] + " ";
-    }
-    if (!content.empty())
-    {
-        content = content.substr(0, content.length() - 1); // Remove trailing space
-    }
-    if (!content.empty() && content[0] == ':')
-    {
-        content = content.substr(1); // Remove leading colon
-    }
 
-    Client *sender = getClientFromFD(fd);
-
-    // Check if the recipient is a client (private message)
-    Client *recipientClient = getClientFromNick(recipient);
-    if (recipientClient != NULL)
+    size_t i;
+    for (i = 0; i < clients.size(); i++)
     {
-        std::string privmsg = ":" + sender->nick + " PRIVMSG " + recipient + " :" + content + "\r\n";
-        send(recipientClient->fd, privmsg.c_str(), privmsg.size(), 0);
-        std::string confirm = ":yourserver.com 250 " + sender->nick + " :Message sent to " + recipient + "\r\n";
-        send(fd, confirm.c_str(), confirm.size(), 0);
-        return;
-    }
-
-    // Check if the recipient is a channel (channel message)
-    Channel *channel = getChannelFromName(recipient);
-    if (channel != NULL && !sender->channel.empty() && sender->channel == channel->getName())
-    {
-        std::string channel_msg = ":" + sender->nick + " PRIVMSG " + recipient + " :" + content + "\r\n";
-        std::vector<Client> users = channel->getUsers();
-        for (size_t i = 0; i < users.size(); ++i)
+        if (clients[i].nick == args[0])
         {
-            if (users[i].fd != fd)
+            std::string content;
+            std::string privmess;
+            for (size_t j = 1; j < args.size(); j++)
             {
-                send(users[i].fd, channel_msg.c_str(), channel_msg.size(), 0);
+                content += args[j] + " ";
+            }
+            if (!content.empty())
+            {
+                content = content.substr(0, content.length() - 1); // Remove trailing space
+            }
+            if (!content.empty() && content[0] == ':')
+            {
+                content = content.substr(1); // Remove leading colon
+            }
+            privmess = ":" + get_nick(fd) + " PRIVMSG " + args[0] + " :" + content + "\r\n";
+            send(clients[i].fd, privmess.c_str(), privmess.size(), 0);
+            std::string confirm = "Message sent to " + args[0] + "\r\n";
+            send(fd, confirm.c_str(), confirm.size(), 0);
+            return;
+        }
+    }
+
+    std::string str;
+    for (i = 0; i < clients.size(); i++)
+    {
+        if (clients[i].fd == fd)
+        {
+            if (!clients[i].channel.empty())
+            {
+                for (size_t j = 1; j < args.size(); j++)
+                {
+                    str += args[j] + " ";
+                }
+                if (!str.empty())
+                {
+                    str = str.substr(0, str.length() - 1); // Remove trailing space
+                }
+                if (!str.empty() && str[0] == ':')
+                {
+                    str = str.substr(1); // Remove leading colon
+                }
+                std::string message = ":" + clients[i].nick + " PRIVMSG " + clients[i].channel + " :" + str + "\r\n";
+                send(clients[i].fd, message.c_str(), message.size(), 0);
+                return;
             }
         }
-        std::string confirm = ":yourserver.com 250 " + sender->nick + " :Message sent to " + recipient + "\r\n";
-        send(fd, confirm.c_str(), confirm.size(), 0);
-        return;
     }
 
-    // If no valid recipient found
-    std::string error_message = ":yourserver.com 404 " + sender->nick + " " + recipient + " :No such user or channel\r\n";
-    send(fd, error_message.c_str(), error_message.size(), 0);
+    send(fd, "Error in message.\r\n", 20, 0);
+}
+
+void Server::joinForSure(std::string channelName, int fd, int newChannel, Channel *channel, Client *client){
+        // Join the new channel
+    client->channel = channelName;
+    channel->addUser(*client);
+
+    // Notify other users in the channel
+    std::string join_msg = ":" + client->nick + " JOIN " + channelName + "\r\n";
+    std::vector<Client> users = channel->getUsers();
+    for (size_t i = 0; i < users.size(); ++i)
+    {
+        if (users[i].fd != client->fd)
+        {
+            send(users[i].fd, join_msg.c_str(), join_msg.size(), 0);
+        }
+    }
+
+    // Handle new channel creation
+    if (newChannel)
+    {
+        channel->addAdmin(client->nick);
+        send(fd, "Channel created and you are the admin\r\n", 40, 0);
+    }
+
+    // Remove invite if necessary
+    if (channel->isInvitee(client->nick))
+    {
+        channel->removeInvitee(client->nick);
+        std::vector<std::string>::iterator it = std::find(client->invites.begin(), client->invites.end(), channelName);
+        if (it != client->invites.end())
+        {
+            client->invites.erase(it);
+        }
+    }
+
+    // Send join message to the client
+    std::string join_message = ":" + client->nick + " JOIN " + channelName + "\r\n";
+    send(fd, join_message.c_str(), join_message.size(), 0);
 }
 
 // /join #channel
@@ -118,6 +162,11 @@ void Server::join(int fd, std::vector<std::string> args)
         return;
     }
 
+    if (channel->isInvitee(client->nick)){
+        joinForSure(channelName, fd, newChannel, channel, client);
+        return;
+    }
+
     // Check if the channel is invite-only and if the client is invited
     if (channel->isInviteOnly() && !channel->isInvitee(client->nick))
     {
@@ -156,75 +205,6 @@ void Server::join(int fd, std::vector<std::string> args)
         }
         client->channel = "";
     }
+    joinForSure(channelName, fd, newChannel, channel, client);
 
-    // Join the new channel
-    client->channel = channelName;
-    channel->addUser(*client);
-
-    // Notify other users in the channel
-    std::string join_msg = ":" + client->nick + " JOIN " + channelName + "\r\n";
-    std::vector<Client> users = channel->getUsers();
-    for (size_t i = 0; i < users.size(); ++i)
-    {
-        send(users[i].fd, join_msg.c_str(), join_msg.size(), 0);
-    }
-
-    // Handle new channel creation
-    if (newChannel)
-    {
-        channel->addAdmin(client->nick);
-        send(fd, "Channel created and you are the admin\r\n", 40, 0);
-    }
-
-    // Remove invite if necessary
-    if (channel->isInvitee(client->nick))
-    {
-        channel->removeInvitee(client->nick);
-        std::vector<std::string>::iterator it = std::find(client->invites.begin(), client->invites.end(), channelName);
-        if (it != client->invites.end())
-        {
-            client->invites.erase(it);
-        }
-    }
-
-    // Send join message to the client
-    std::string join_message = ":" + client->nick + " JOIN " + channelName + "\r\n";
-    send(fd, join_message.c_str(), join_message.size(), 0);
 }
-// previous
-/*
-void Server::join(int fd, std::vector<std::string> args) {
-    Channel *channel = findOrMakeChannel(args[0]);
-    if (is_authentic(fd) != 0) {return ;}
-    if (args.size() != 1 || args[0][0] != '#')
-       {send(fd, "Try JOIN #channel\r\n", 21, 0); return ; }
-    for (size_t i = 0; i < clients.size(); i++) {
-        if (clients[i].fd == fd) {
-            send(fd, "FOUND CLIENT\r\n", 14, 0);
-            int exists = channel->userExists(clients[i]);
-            if (exists == 1) {
-                send(fd, "YOU ARE ALREADY IN THE CHANNEL\r\n", 33,0);
-                return ;}
-            else if(exists == 2){
-                send(fd, "SOMETHING WENT WRONG BUT ITS ALL GOOD NOW :)\r\n", 47,0);
-                channel->fixPartialExistence(clients[i]);
-                return;
-            }
-            if (clients[i].channel != NULL){
-                send(fd, "LEAVING PREVIOUS CHANNEL\r\n", 27, 0);
-                clients[i].channel->KickUser(clients[i].name);
-            }
-            clients[i].channel = channel;
-            channel->addUser(clients[i]);
-            for (size_t j = 0; j < clients.size(); j++) {
-                if (clients[j].channel == args[0] && i != j) {
-                    std::string notify = clients[i].nick + " has joined " + args[0] + "\r\n";
-                    send(clients[j].fd, notify.c_str(), notify.size(), 0);
-                }}
-            std::string join_message = ":" + clients[i].nick + " JOIN " + args[0] + "\r\n";
-            std::cout << clients[i].nick << ": joined " << args[0] << std::endl;
-            send(fd, join_message.c_str(), join_message.size(), 0);
-            return ;
-    }}
-}
-*/
