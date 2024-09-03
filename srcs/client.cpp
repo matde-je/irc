@@ -78,8 +78,15 @@ int    Server::is_authentic(int fd) {
     return 0;
 }
 
+std::string to_uppercase(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+    return str;
+}
+
+
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
     // std::cout << "Sending command: '" << cmd << "'" << std::endl;
+    cmd = to_uppercase(cmd); // Ensure command is case-insensitive
     if (cmd == "PASS"|| cmd == "/pass") 
         {pass(fd, args); return 1;}
     else if (cmd == "USER"|| cmd == "/user")
@@ -114,7 +121,7 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
     }
     else {
         std::string error_message = "ERROR :Unknown command " + cmd + "\r\n";
-        send(fd, error_message.c_str(), error_message.size(), 0);
+        send(fd, error_message.c_str(), error_message.size()+1, 0);
         return 0;
     }
     return 0;

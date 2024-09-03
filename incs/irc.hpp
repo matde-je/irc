@@ -20,11 +20,14 @@
 #include <csignal> 
 #include "channel.hpp"
 
-
+#include <map>
 
 //info about each client
 class Client {
+    
     public :
+
+
         Client();
         ~Client();
         int fd;
@@ -41,13 +44,14 @@ class Server {
     public :
         std::vector<Channel> channels;
         int port;
+        std::map<int, std::string> client_buffers;
         std::string password;
         int socketfd;
         static bool signal;
         std::vector<Client> clients;
         std::vector<struct pollfd> fds; //pollfd is used in poll() to monitor fds (sockets) for events
         void loop();
-        void parse(int fd, char *buf);
+        void parse(int fd, const char *buf);
         void new_client();
         void clear_client(int fd);
         void close_fds();
