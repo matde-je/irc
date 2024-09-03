@@ -40,52 +40,71 @@ BUILDDIR = build
 
 # Source files
 SRCS = $(SRCDIR)/main.cpp \
-       $(SRCDIR)/server.cpp \
-       $(SRCDIR)/client.cpp \
-       $(SRCDIR)/cmds.cpp \
-       $(SRCDIR)/join_msg.cpp \
-       $(SRCDIR)/channel.cpp
+	$(SRCDIR)/server.cpp \
+	$(SRCDIR)/client.cpp \
+	$(SRCDIR)/cmds.cpp \
+	$(SRCDIR)/join_msg.cpp \
+	$(SRCDIR)/channel.cpp
 
 # Object files
 OBJS = $(BUILDDIR)/main.o \
-       $(BUILDDIR)/server.o \
-       $(BUILDDIR)/client.o \
-       $(BUILDDIR)/cmds.o \
-       $(BUILDDIR)/join_msg.o \
-       $(BUILDDIR)/channel.o
+	$(BUILDDIR)/server.o \
+	$(BUILDDIR)/client.o \
+	$(BUILDDIR)/cmds.o \
+	$(BUILDDIR)/join_msg.o \
+	$(BUILDDIR)/channel.o
 
 # Executable name
 name = ircserv
 
+# Colors
+GREEN = \033[1;32m
+RESET = \033[0m
+BLUE = \033[1;34m
+
 # Build the executable
 $(name): $(OBJS)
 		clear
+		@echo "$(GREEN)Building $(name)...$(RESET)"
 		@$(CC) $(CFLAGS) $(OBJS) -o $(name)
+		@echo "$(GREEN)Build successful!$(RESET)"
 
 # Compile source files into object files
 $(BUILDDIR)/main.o: $(SRCDIR)/main.cpp
 		@mkdir -p $(BUILDDIR)
+		@echo "$(BLUE)Compiling $<...$(RESET)"
 		@$(CC) $(CFLAGS) -c $< -o $@
+		@echo "$(BLUE)Compilation of $< successful!$(RESET)"
 
 $(BUILDDIR)/server.o: $(SRCDIR)/server.cpp
 		@mkdir -p $(BUILDDIR)
+		@echo "$(BLUE)Compiling $<...$(RESET)"
 		@$(CC) $(CFLAGS) -c $< -o $@
+		@echo "$(BLUE)Compilation of $< successful!$(RESET)"
 
 $(BUILDDIR)/client.o: $(SRCDIR)/client.cpp
 		@mkdir -p $(BUILDDIR)
+		@echo "$(BLUE)Compiling $<...$(RESET)"
 		@$(CC) $(CFLAGS) -c $< -o $@
+		@echo "$(BLUE)Compilation of $< successful!$(RESET)"
 
 $(BUILDDIR)/cmds.o: $(SRCDIR)/cmds.cpp
 		@mkdir -p $(BUILDDIR)
+		@echo "$(BLUE)Compiling $<...$(RESET)"
 		@$(CC) $(CFLAGS) -c $< -o $@
+		@echo "$(BLUE)Compilation of $< successful!$(RESET)"
 
 $(BUILDDIR)/join_msg.o: $(SRCDIR)/join_msg.cpp
 		@mkdir -p $(BUILDDIR)
+		@echo "$(BLUE)Compiling $<...$(RESET)"
 		@$(CC) $(CFLAGS) -c $< -o $@
+		@echo "$(BLUE)Compilation of $< successful!$(RESET)"
 
 $(BUILDDIR)/channel.o: $(SRCDIR)/channel.cpp
 		@mkdir -p $(BUILDDIR)
+		@echo "$(BLUE)Compiling $<...$(RESET)"
 		@$(CC) $(CFLAGS) -c $< -o $@
+		@echo "$(BLUE)Compilation of $< successful!$(RESET)"
 
 # Clean build files
 fclean:

@@ -80,9 +80,9 @@ int    Server::is_authentic(int fd) {
 
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
     // std::cout << "Sending command: '" << cmd << "'" << std::endl;
-    if (cmd == "PASS") 
+    if (cmd == "PASS"|| cmd == "/pass") 
         {pass(fd, args); return 1;}
-    else if (cmd == "USER")
+    else if (cmd == "USER"|| cmd == "/user")
         {user(fd, args); return 1;}
     else if (cmd == "NICK" || cmd == "/nick")
         {nick(fd, args); return 1;}
@@ -111,6 +111,11 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
         std::cout << "Showing channels: \n";
         showChannels(fd);
         return 1;
+    }
+    else {
+        std::string error_message = "ERROR :Unknown command " + cmd + "\r\n";
+        send(fd, error_message.c_str(), error_message.size(), 0);
+        return 0;
     }
     return 0;
 }
