@@ -260,3 +260,25 @@ bool Channel::isPasswordProtected()
 {
     return this->passwordProtected;
 }
+
+void Channel::removeAdmin(std::string nick)
+{
+    for (size_t i = 0; i < admins.size(); i++)
+    {
+        if (admins[i].nick == nick)
+        {
+            admins.erase(admins.begin() + i);
+            return;
+        }
+    }
+}
+
+std::vector<Client> Channel::getAdmins()
+{
+    return this->admins;
+}
+
+void Channel::setPasswordProtected(bool passwordProtected)
+{
+    this->passwordProtected = passwordProtected;
+}

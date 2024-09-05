@@ -35,6 +35,7 @@ class Channel {
         Client *getUserFromFD(int fd);
         Client *getUserFromNick(std::string nick);
         void addAdmin(std::string nick);
+        void removeAdmin(std::string nick);
         void addInvitee(Client client);
         void setTopic(std::string topic);
         std::string getTopic();
@@ -51,6 +52,9 @@ class Channel {
         void setPassword(std::string password);
         std::string getPassword();
         bool isPasswordProtected();
+        std::vector<Client> getAdmins();
+        void setPasswordProtected(bool passwordProtected);
+
 };
 
 #endif

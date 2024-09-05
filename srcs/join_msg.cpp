@@ -12,7 +12,6 @@ void Server::msg(int fd, std::vector<std::string> args)
         return;
     }
 
-
     size_t i;
     for (i = 0; i < clients.size(); i++)
     {
@@ -69,8 +68,9 @@ void Server::msg(int fd, std::vector<std::string> args)
     send(fd, "Error in message.\r\n", 20, 0);
 }
 
-void Server::joinForSure(std::string channelName, int fd, int newChannel, Channel *channel, Client *client){
-        // Join the new channel
+void Server::joinForSure(std::string channelName, int fd, int newChannel, Channel *channel, Client *client)
+{
+    // Join the new channel
     client->channel = channelName;
     channel->addUser(*client);
 
@@ -162,7 +162,8 @@ void Server::join(int fd, std::vector<std::string> args)
         return;
     }
 
-    if (channel->isInvitee(client->nick)){
+    if (channel->isInvitee(client->nick))
+    {
         joinForSure(channelName, fd, newChannel, channel, client);
         return;
     }
@@ -193,6 +194,23 @@ void Server::join(int fd, std::vector<std::string> args)
     if (!client->channel.empty())
     {
         Channel *previousChannel = getChannelFromName(client->channel);
+        if (previousChannel->isAdmin(client->nick))
+        {
+            if (previousChannel->getAdmins().size() == 1)
+            {
+                bool hasNewAdmin = false;
+                for (size_t i = 0; i < previousChannel->getUsers().size() && hasNewAdmin; i++) // find the first non admin from users and make him admin
+                {
+                    if (!previousChannel->isAdmin(previousChannel->getUsers()[i].nick))
+                    {
+                        previousChannel->addAdmin(previousChannel->getUsers()[i].nick);
+                        hasNewAdmin = true;
+                        break;
+                    }
+                }
+            }
+            previousChannel->removeAdmin(client->nick);
+        }
         if (previousChannel != NULL)
         {
             previousChannel->KickUser(client->nick);
@@ -206,5 +224,4 @@ void Server::join(int fd, std::vector<std::string> args)
         client->channel = "";
     }
     joinForSure(channelName, fd, newChannel, channel, client);
-
 }

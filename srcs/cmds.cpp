@@ -73,12 +73,14 @@ void Server::mode(int fd, std::vector<std::string> args)
         if (args[1] == "0")
         {
             channel->setPassword("");
+            channel->setPasswordProtected(false);
             std::string message = ":yourserver.com 324 " + admin->nick + " " + channel->getName() + " :Password removed\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
         else
         {
             channel->setPassword(args[1]);
+            channel->setPasswordProtected(true);
             std::string message = ":yourserver.com 324 " + admin->nick + " " + channel->getName() + " :Password set\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
