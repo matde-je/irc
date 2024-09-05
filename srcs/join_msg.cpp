@@ -89,7 +89,7 @@ void Server::joinForSure(std::string channelName, int fd, int newChannel, Channe
     if (newChannel)
     {
         channel->addAdmin(client->nick);
-        send(fd, "Channel created and you are the admin\r\n", 40, 0);
+        // send(fd, "Channel created and you are the admin\r\n", 40, 0);
     }
 
     // Remove invite if necessary
