@@ -1,8 +1,7 @@
 #include "../incs/irc.hpp"
 
-// /msg <nickname> <message> (private message)
-// or in channel
-// open new page
+// /msg <nickname> <message>
+// /msg <channel> <message>
 void Server::msg(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0 || args.size() < 2)
@@ -12,60 +11,75 @@ void Server::msg(int fd, std::vector<std::string> args)
         return;
     }
 
-    size_t i;
-    for (i = 0; i < clients.size(); i++)
+    std::string recipient = args[0];
+    std::string content;
+    for (size_t i = 1; i < args.size(); ++i)
     {
-        if (clients[i].nick == args[0])
+        content += args[i] + " ";
+    }
+    if (!content.empty())
+    {
+        content = content.substr(0, content.length() - 1);
+    }
+    if (!content.empty() && content[0] == ':')
+    {
+        content = content.substr(1);
+    }
+
+    Client* sender = getClientFromFD(fd);
+    if (sender == NULL)
+    {
+        std::string error_message = ":yourserver.com 401 :Sender not found\r\n";
+        send(fd, error_message.c_str(), error_message.size(), 0);
+        return;
+    }
+
+    Client* recipientClient = getClientFromNick(recipient);
+    if (recipientClient != NULL)
+    {
+        if (sender->channel == recipientClient->channel && !sender->channel.empty())
         {
-            std::string content;
-            std::string privmess;
-            for (size_t j = 1; j < args.size(); j++)
-            {
-                content += args[j] + " ";
-            }
-            if (!content.empty())
-            {
-                content = content.substr(0, content.length() - 1); // Remove trailing space
-            }
-            if (!content.empty() && content[0] == ':')
-            {
-                content = content.substr(1); // Remove leading colon
-            }
-            privmess = ":" + get_nick(fd) + " PRIVMSG " + args[0] + " :" + content + "\r\n";
-            send(clients[i].fd, privmess.c_str(), privmess.size(), 0);
-            std::string confirm = "Message sent to " + args[0] + "\r\n";
+            std::string privmess = ":" + sender->nick + " PRIVMSG " + recipient + " :" + content + "\r\n";
+            send(recipientClient->fd, privmess.c_str(), privmess.size(), 0);
+            std::string confirm = "Message sent to " + recipient + "\r\n";
             send(fd, confirm.c_str(), confirm.size(), 0);
+            return;
+        }
+        else
+        {
+            std::string error_message = ":yourserver.com 404 " + sender->nick + " " + recipient + " :Recipient not in the same channel\r\n";
+            send(fd, error_message.c_str(), error_message.size(), 0);
             return;
         }
     }
 
-    std::string str;
-    for (i = 0; i < clients.size(); i++)
+
+    Channel* channel = getChannelFromName(recipient);
+    if (channel != NULL)
     {
-        if (clients[i].fd == fd)
+        if (sender->channel == recipient)
         {
-            if (!clients[i].channel.empty())
+            std::string message = ":" + sender->nick + " PRIVMSG " + recipient + " :" + content + "\r\n";
+            std::vector<Client> users = channel->getUsers();
+            for (size_t i = 0; i < users.size(); ++i)
             {
-                for (size_t j = 1; j < args.size(); j++)
+                if (users[i].fd != fd)
                 {
-                    str += args[j] + " ";
+                    send(users[i].fd, message.c_str(), message.size(), 0);
                 }
-                if (!str.empty())
-                {
-                    str = str.substr(0, str.length() - 1); // Remove trailing space
-                }
-                if (!str.empty() && str[0] == ':')
-                {
-                    str = str.substr(1); // Remove leading colon
-                }
-                std::string message = ":" + clients[i].nick + " PRIVMSG " + clients[i].channel + " :" + str + "\r\n";
-                send(clients[i].fd, message.c_str(), message.size(), 0);
-                return;
             }
+            return;
+        }
+        else
+        {
+            std::string error_message = ":yourserver.com 404 " + sender->nick + " " + recipient + " :You are not in the channel\r\n";
+            send(fd, error_message.c_str(), error_message.size(), 0);
+            return;
         }
     }
 
-    send(fd, "Error in message.\r\n", 20, 0);
+    std::string error_message = ":yourserver.com 401 " + sender->nick + " " + recipient + " :No such nick/channel\r\n";
+    send(fd, error_message.c_str(), error_message.size(), 0);
 }
 
 void Server::joinForSure(std::string channelName, int newChannel, Channel *channel, Client *client)
