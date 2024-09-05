@@ -15,7 +15,7 @@ std::string Server::get_nick(int fd) {
     return ("Client " + ss.str());
 }
 
-//set /nick
+//  /nick <nickname>
 void Server::nick(int fd, std::vector<std::string> args){
     if (has_pass(fd) == 1) {return ;}
     if (args.size() == 1) {
@@ -30,18 +30,20 @@ void Server::nick(int fd, std::vector<std::string> args){
 //USER <username> <mode> <unused> <realname>
 //USER myusername 0 0 My Real Name
 //check
-void Server::user(int fd, std::vector<std::string> args){
-    if (has_pass(fd) == 1) {return ;}
+void Server::user(int fd, std::vector<std::string> args) {
+    if (has_pass(fd) == 1) {return;}
+    
     if (args.size() == 4) {
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].fd == fd) {
                 clients[i].name = args[0];
                 std::cout << "Client " << fd << ": changed name to " << args[0] << std::endl;
-                send(fd, ("NAME set to " + args[0] + "\r\n").c_str(), 13 + args[0].length(), 0);
-                send(fd, "\r\n", 2, 0);
-                return ;
-            }}}
-            
+                std::string message = "NAME set to " + args[0] + "\r\n";
+                send(fd, message.c_str(), message.size(), 0);
+                return;
+            }
+        }
+    }
 }
 
 void    Server::pass(int fd, std::vector<std::string> args){
@@ -85,8 +87,7 @@ std::string to_uppercase(std::string str) {
 
 
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
-    // std::cout << "Sending command: '" << cmd << "'" << std::endl;
-    cmd = to_uppercase(cmd); // Ensure command is case-insensitive
+    cmd = to_uppercase(cmd);
     if (cmd == "PASS"|| cmd == "/PASS") 
         {pass(fd, args); return 1;}
     else if (cmd == "USER"|| cmd == "/USER")
@@ -103,7 +104,7 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
         {invite(fd, args); return 1;}
     else if (cmd == "PRIVMSG" || cmd == "/PRIVMSG")
         {msg(fd, args); return 1;}
-    else if (cmd == "JOIN" || cmd == "/jJOINoin")
+    else if (cmd == "JOIN" || cmd == "/JOIN")
         {
             join(fd, args);
             return 1;
@@ -121,7 +122,7 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
     }
     else {
         std::string error_message = "ERROR :Unknown command " + cmd + "\r\n";
-        send(fd, error_message.c_str(), error_message.size()+1, 0);
+        send(fd, error_message.c_str(), error_message.size(), 0);
         return 0;
     }
     return 0;

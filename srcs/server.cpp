@@ -39,8 +39,11 @@ void Server::new_client() {
     socklen_t csin_len = sizeof(csin);
     int fd = accept(socketfd, (struct sockaddr*)&csin, &csin_len);
     if (fd == -1) {std::cerr << "Accept failed.\n"; return;}
-    if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) //non-blocking socket
-		{std::cerr << "Non-blocking failed" << std::endl; return;}
+if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+    std::cerr << "Failed to set non-blocking mode for client socket.\n";
+    close(fd);
+    return;
+}
     std::cout << "New client " << fd <<  " from " << inet_ntoa(csin.sin_addr) << ": " << ntohs(csin.sin_port) << std::endl;
 
     struct pollfd poll; 
@@ -61,21 +64,19 @@ void Server::parse(int fd, const char *buf) {
         str.erase(str.length() - 1); 
     if (!str.empty() && str[str.length() - 1] == '\r') 
         str.erase(str.length() - 1); 
-    //std::cout << buf << std::endl;
     std::stringstream ss(str);
     std::string command;
-    while (std::getline(ss, command, '\n')) { //split the string into individual commands based on '\n'
+    while (std::getline(ss, command, '\n')) {
         if (!command.empty() && command[command.length() - 1] == '\r') 
             command.erase(command.length() - 1);
         size_t start = command.find_first_not_of("\t\v "); 
         if (start == std::string::npos) 
-            continue; //no command provided
-        std::string cmd = command.substr(start); //extract the command
+            continue;
+        std::string cmd = command.substr(start);
         std::vector<std::string> arglist;
         size_t end = cmd.find_first_of(" ");
         if (end != std::string::npos) {
-            std::string args = cmd.substr(end + 1); //get the rest of the string
-            //std::cout << "passed: " << cmd << " " << args << std::endl;
+            std::string args = cmd.substr(end + 1);
             std::stringstream argStream(args);
             std::string arg;
             while (std::getline(argStream, arg, ' ')) {
@@ -94,7 +95,8 @@ void Server::loop() {
         if (poll(&fds[0], fds.size(), -1) == -1 && Server::signal == false) //block indefinitely until an event occurs 
             {std::cerr << "poll() failed.\n"; return;}
         for (int i = 0; i < (int)fds.size(); i++) {
-            if (fds[i].revents & POLLIN) { //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
+            if (fds[i].revents & POLLIN) {
+                 //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
                 if (fds[i].fd == socketfd) //POLLIN on the server socket file descriptor indicates that there is a new incoming connection, not new data
                     new_client();
                 else {

@@ -68,31 +68,18 @@ void Server::msg(int fd, std::vector<std::string> args)
     send(fd, "Error in message.\r\n", 20, 0);
 }
 
-void Server::joinForSure(std::string channelName, int fd, int newChannel, Channel *channel, Client *client)
+void Server::joinForSure(std::string channelName, int newChannel, Channel *channel, Client *client)
 {
-    // Join the new channel
     client->channel = channelName;
     channel->addUser(*client);
 
-    // Notify other users in the channel
     std::string join_msg = ":" + client->nick + " JOIN " + channelName + "\r\n";
     std::vector<Client> users = channel->getUsers();
-    for (size_t i = 0; i < users.size(); ++i)
-    {
-        if (users[i].fd != client->fd)
-        {
-            send(users[i].fd, join_msg.c_str(), join_msg.size(), 0);
-        }
-    }
-
-    // Handle new channel creation
     if (newChannel)
     {
         channel->addAdmin(client->nick);
-        // send(fd, "Channel created and you are the admin\r\n", 40, 0);
     }
 
-    // Remove invite if necessary
     if (channel->isInvitee(client->nick))
     {
         channel->removeInvitee(client->nick);
@@ -102,26 +89,19 @@ void Server::joinForSure(std::string channelName, int fd, int newChannel, Channe
             client->invites.erase(it);
         }
     }
-
-    // Send join message to the client
-    std::string join_message = ":" + client->nick + " JOIN " + channelName + "\r\n";
-    send(fd, join_message.c_str(), join_message.size(), 0);
+    for (size_t i = 0; i < users.size(); ++i)
+    {
+        send(users[i].fd, join_msg.c_str(), join_msg.size(), 0);
+    }
 }
 
-// /join #channel
-// send to all clients in the channel
-// join/create:admin if channel doesnt exist
-// open another file with channel
-// this as an error
 void Server::join(int fd, std::vector<std::string> args)
 {
-    // Ensure the client is authenticated
     if (is_authentic(fd) != 0)
     {
         return;
     }
 
-    // Check for correct arguments
     if (args.size() < 1 || args.size() > 2 || args[0][0] != '#')
     {
         send(fd, "Usage: JOIN #channel [password]\r\n", 34, 0);
@@ -131,7 +111,6 @@ void Server::join(int fd, std::vector<std::string> args)
     std::string channelName = args[0];
     std::string password = (args.size() == 2) ? args[1] : "";
 
-    // Find or create the channel
     int newChannel = 0;
     Channel *channel = findOrMakeChannel(&newChannel, channelName);
     if (channel == NULL)
@@ -140,7 +119,6 @@ void Server::join(int fd, std::vector<std::string> args)
         return;
     }
 
-    // Get the client who is joining
     Client *client = getClientFromFD(fd);
     if (client == NULL)
     {
@@ -148,35 +126,25 @@ void Server::join(int fd, std::vector<std::string> args)
         return;
     }
 
-    // Check if the client is already in the channel
     if (channel->isUser(client->nick))
     {
         send(fd, "You are already in this channel\r\n", 33, 0);
         return;
     }
 
-    // Check if the channel is full
     if (channel->getisLimited() && channel->getUsers().size() >= channel->getLimit())
     {
         send(fd, "Channel is full\r\n", 17, 0);
         return;
     }
 
-    if (channel->isInvitee(client->nick))
-    {
-        joinForSure(channelName, fd, newChannel, channel, client);
-        return;
-    }
-
-    // Check if the channel is invite-only and if the client is invited
     if (channel->isInviteOnly() && !channel->isInvitee(client->nick))
     {
         send(fd, "You are not invited to this channel\r\n", 38, 0);
         return;
     }
 
-    // Check for password protection
-    if (channel->isPasswordProtected())
+    if (channel->isPasswordProtected() && !channel->isInvitee(client->nick))
     {
         if (password.empty())
         {
@@ -199,7 +167,7 @@ void Server::join(int fd, std::vector<std::string> args)
             if (previousChannel->getAdmins().size() == 1)
             {
                 bool hasNewAdmin = false;
-                for (size_t i = 0; i < previousChannel->getUsers().size() && hasNewAdmin; i++) // find the first non admin from users and make him admin
+                for (size_t i = 0; i < previousChannel->getUsers().size() && hasNewAdmin; i++)
                 {
                     if (!previousChannel->isAdmin(previousChannel->getUsers()[i].nick))
                     {
@@ -223,5 +191,10 @@ void Server::join(int fd, std::vector<std::string> args)
         }
         client->channel = "";
     }
-    joinForSure(channelName, fd, newChannel, channel, client);
+    // if (channel->isInvitee(client->nick))
+    // {
+    //     joinForSure(channelName, newChannel, channel, client);
+    //     return;
+    // }
+    joinForSure(channelName, newChannel, channel, client);
 }
