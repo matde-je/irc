@@ -17,7 +17,7 @@ class Channel {
         bool topicRestricted;
         bool passwordProtected;
         std::string password;
-    
+
     public : 
         Channel();
         ~Channel();
@@ -29,7 +29,6 @@ class Channel {
         int KickUser(std::string nick);
         void addUser(Client user);
         int userExists(Client User);
-        void fixPartialExistence(Client user);
         int getClientIndex(std::string nick);
         std::vector<Client> getUsers();
         Client *getUserFromFD(int fd);

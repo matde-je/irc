@@ -12,8 +12,9 @@ void Server::signal_handler(int signum) {
 }
 
 void Server::clear_client(int fd) {
+    
     for (size_t i = 0; i < clients.size(); i++) {
-        if (clients[i].fd == fd)
+        if (clients[i].getFd() == fd)
             {clients.erase(clients.begin() + i); break ;}
     }
     for (size_t i = 0; i < fds.size(); i++) {
@@ -25,8 +26,8 @@ void Server::clear_client(int fd) {
 //if you close the file descriptor via the client, you do not need to close it again in fds vector
 void Server::close_fds() {
     for (size_t i = 0; i < clients.size(); i++) {
-        std::cout << get_nick(clients[i].fd) << " disconnected" << std::endl;
-        close(clients[i].fd);
+        std::cout << get_nick(clients[i].getFd()) << " disconnected" << std::endl;
+        close(clients[i].getFd());
     }
     std::cout << "Server " << socketfd << " disconnected" << std::endl;
     close(socketfd);
@@ -52,8 +53,8 @@ if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
 	poll.revents = 0;
 
     Client client;
-    client.fd = fd;
-    client.ip = inet_ntoa(csin.sin_addr);
+    client.setFd(fd);
+    client.getIp() = inet_ntoa(csin.sin_addr);
     clients.push_back(client);
 	fds.push_back(poll);
 }
@@ -148,23 +149,23 @@ Channel *Server::getChannelFromName(std::string name) {
     return NULL;
 }
 
-//SHOW 
-void Server::showClients(int fd) {
+//SHOW <channelname>
+void Server::showClients(int fd,  std::vector<std::string> args) {
     Client client;
     for (std::size_t i = 0; i < clients.size(); i++)
     {
-        if (clients[i].fd == fd)
+        if (clients[i].getFd() == fd)
             {client = clients[i]; break ;}
     }
-    Channel *channel = getChannelFromName(client.channel);
+    Channel *channel = getChannelFromName(args[0]);
     if (channel == NULL){
-        send(fd,( "you" + client.name + " are not in a channel\r\n").c_str(), 26 + client.name.length(), 0);
+        send(fd,( "you" + client.getName() + " are not in a channel\r\n").c_str(), 26 + client.getName().length(), 0);
         return;
     }
-    std::cout << "Client " << client.nick << " requested to show clients" << std::endl;
+    std::cout << "Client " << client.getNick() << " requested to show clients" << std::endl;
     for (std::size_t i = 0;i < channel->getUsers().size(); i++)
     {
-            send(fd, channel->getUsers()[i].nick.c_str(),channel->getUsers()[i].nick.length(), 0);
+            send(fd, channel->getUsers()[i].getNick().c_str(),channel->getUsers()[i].getNick().length(), 0);
             send(fd, "\r\n", 2, 0);
             
     }
@@ -173,7 +174,7 @@ void Server::showClients(int fd) {
 void Server::showChannels(int fd){
     Client *client = getClientFromFD(fd);
     for (size_t i = 0; i < channels.size(); i++){
-        if(channels[i].getName() == client->name){
+        if(channels[i].getName() == client->getName()){
             send(fd, "You are in this CHANNEL------>", 30, 0);
         }
         send(fd, ("channel "" :" + channels[i].getName() + "\r\n").c_str(), channels[i].getName().length() + 12, 0);
@@ -194,7 +195,7 @@ Channel* Server::findOrMakeChannel(int *newChannel, std::string name) {
 
 Client *Server::getClientFromFD(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
-        if (clients[i].fd == fd) {
+        if (clients[i].getFd() == fd) {
             return &clients[i];
         }
     }
@@ -203,9 +204,10 @@ Client *Server::getClientFromFD(int fd) {
 
 Client *Server::getClientFromNick(std::string nick) {
     for (size_t i = 0; i < clients.size(); i++) {
-        if (clients[i].nick == nick) {
+        if (clients[i].getNick() == nick) {
             return &clients[i];
         }
     }
     return NULL;
 }
+

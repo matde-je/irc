@@ -24,21 +24,40 @@
 
 //info about each client
 class Client {
-    
-    public :
-
-
-        Client();
-        ~Client();
+    private :
         int fd;
         std::string ip;
         std::string name;
         std::string nick;
         bool pass;
-        std::string channel;
+        std::vector<std::string> channels;
         std::vector<std::string> invites;
-};
 
+    public :
+        Client();
+        ~Client();
+
+        int getFd();
+        std::string getIp();
+        std::string getName();
+        std::string getNick();
+        bool getPass();
+        std::vector<std::string> getChannel();
+        std::vector<std::string> getInvites();
+
+        void setFd(int fd);
+        void setIp(std::string ip);
+        void setName(std::string name);
+        void setNick(std::string nick);
+        void setPass(bool pass);
+        void addChannel(std::string channel);
+        void removeChannel(std::string channel);
+        void addInvite(std::string invites);
+        void removeInvite(std::string invite);
+
+        bool isInChannel(std::string channel);
+
+};
 
 class Server {
     public :
@@ -76,11 +95,10 @@ class Server {
 
         Channel *getChannelFromName(std::string name);
         Channel *findOrMakeChannel(int *newChannel, std::string name);
-        void showClients(int fd);
+        void showClients(int fd,  std::vector<std::string> args);
         void showChannels(int fd);
 
         Client *getClientFromFD(int fd);
-
         Client *getClientFromNick(std::string nick);
 
         void joinForSure(std::string channelName, int newChannel, Channel *channel, Client *client);

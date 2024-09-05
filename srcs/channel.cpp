@@ -37,7 +37,7 @@ bool Channel::isUser(std::string nick)
 {
     for (size_t i = 0; i < users.size(); i++)
     {
-        if (users[i].nick == nick)
+        if (users[i].getNick() == nick)
             return true;
     }
     return false;
@@ -47,7 +47,7 @@ bool Channel::isAdmin(std::string nick)
 {
     for (size_t i = 0; i < admins.size(); i++)
     {
-        if (admins[i].nick == nick)
+        if (admins[i].getNick() == nick)
             return true;
     }
     return false;
@@ -57,7 +57,7 @@ int Channel::getClientIndex(std::string nick)
 {
     for (size_t i = 0; i < users.size(); i++)
     {
-        if (users[i].nick == nick)
+        if (users[i].getNick() == nick)
             return i;
     }
     return -1;
@@ -112,18 +112,6 @@ void Channel::addUser(Client user)
 //     }
 // }
 
-void Channel::fixPartialExistence(Client user)
-{
-    if (user.channel == this->name)
-    {
-        addUser(user);
-    }
-    else if (isUser(user.name))
-    {
-        user.channel = this->getName();
-    }
-}
-
 std::vector<Client> Channel::getUsers()
 {
     return this->users;
@@ -137,7 +125,7 @@ Client *Channel::getUserFromNick(std::string nick)
 {
     for (size_t i = 0; i < users.size(); i++)
     {
-        if (users[i].nick == nick)
+        if (users[i].getNick() == nick)
             return &users[i];
     }
     return NULL;
@@ -147,7 +135,7 @@ Client *Channel::getUserFromFD(int fd)
 {
     for (size_t i = 0; i < users.size(); i++)
     {
-        if (users[i].fd == fd)
+        if (users[i].getFd() == fd)
         {
             return &users[i];
         }
@@ -159,7 +147,7 @@ void Channel::addAdmin(std::string nick)
 {
     for (size_t i = 0; i < users.size(); i++)
     {
-        if (users[i].nick == nick)
+        if (users[i].getNick() == nick)
         {
             admins.push_back(users[i]);
             return;
@@ -170,7 +158,7 @@ void Channel::addAdmin(std::string nick)
 void Channel::addInvitee(Client client)
 {
     invitees.push_back(client); // Push the Client object into the invitees vector
-    std::cout << client.nick; // Print the 'nick' member of the Client object
+    std::cout << client.getNick(); // Print the 'nick' member of the Client object
     return;
 }
 
@@ -188,7 +176,7 @@ void Channel::removeInvitee(std::string nick)
 {
     for (size_t i = 0; i < invitees.size(); i++)
     {
-        if (invitees[i].nick == nick)
+        if (invitees[i].getNick() == nick)
         {
             invitees.erase(invitees.begin() + i);
             return;
@@ -200,7 +188,7 @@ bool Channel::isInvitee(std::string nick)
 {
     for (size_t i = 0; i < invitees.size(); i++)
     {
-        if (invitees[i].nick == nick)
+        if (invitees[i].getNick() == nick)
             return true;
     }
     return false;
@@ -265,7 +253,7 @@ void Channel::removeAdmin(std::string nick)
 {
     for (size_t i = 0; i < admins.size(); i++)
     {
-        if (admins[i].nick == nick)
+        if (admins[i].getNick() == nick)
         {
             admins.erase(admins.begin() + i);
             return;
