@@ -6,8 +6,18 @@
 void Server::topic(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0)
-    {return;}
+    {
+        return;
+    }
+
     Client *admin = getClientFromFD(fd);
+    if (args.size() < 1)
+    {
+        std::string message = ":yourserver.com 461 " + admin->getNick() + " TOPIC :Not enough parameters\r\n";
+        send(fd, message.c_str(), message.size(), 0);
+        return;
+    }
+
     Channel *channel = getChannelFromName(args[0]);
     if (channel == NULL)
     {
@@ -15,6 +25,7 @@ void Server::topic(int fd, std::vector<std::string> args)
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
+
     if (!channel->isAdmin(admin->getNick()) && channel->isTopicRestricted())
     {
         std::string message = ":yourserver.com 482 " + admin->getNick() + " " + channel->getName() + " :You're not a channel operator\r\n";
@@ -22,7 +33,7 @@ void Server::topic(int fd, std::vector<std::string> args)
         return;
     }
 
-    if (args.size() == 0)
+    if (args.size() == 1)
     {
         std::string topic = channel->getTopic();
         if (topic.empty())
@@ -40,7 +51,8 @@ void Server::topic(int fd, std::vector<std::string> args)
 
     std::string new_topic = args[1];
     channel->setTopic(new_topic);
-        // Notify all channel members about the new topic
+
+    // Notify all channel members about the new topic
     std::string topic_message = ":" + admin->getNick() + "!" + admin->getName() + "@" + admin->getIp() + " TOPIC " + channel->getName() + " :" + new_topic + "\r\n";
     std::vector<Client> members = channel->getUsers();
     std::vector<Client>::iterator it;
@@ -49,7 +61,7 @@ void Server::topic(int fd, std::vector<std::string> args)
         send((*it).getFd(), topic_message.c_str(), topic_message.size(), 0);
     }
 }
-
+// /mode <channel> <mode> <args>
 // /mode <channel> <mode> <args>
 void Server::mode(int fd, std::vector<std::string> args)
 {
@@ -57,6 +69,7 @@ void Server::mode(int fd, std::vector<std::string> args)
     {
         return;
     }
+
     Client *admin = getClientFromFD(fd);
     Channel *channel = getChannelFromName(args[0]);
     if (channel == NULL)
@@ -65,15 +78,35 @@ void Server::mode(int fd, std::vector<std::string> args)
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
+
     if (!channel->isAdmin(admin->getNick()))
     {
         std::string message = ":yourserver.com 482 " + admin->getNick() + " " + channel->getName() + " :You need to be a channel operator\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-    if (args[0] == "k") // MODE k <password> / MODE 0 (remove password)
+
+    // Trim any leading or trailing whitespace from args[1]
+    std::string mode = args[1];
+    mode.erase(0, mode.find_first_not_of(" \t\n\r\f\v"));
+    mode.erase(mode.find_last_not_of(" \t\n\r\f\v") + 1);
+
+    for(size_t i = 0; i < args.size(); i++)
     {
-        if (args[1] == "0")
+        std::cout << "args[" << i << "] = '" << args[i] << "'" << std::endl;
+    }
+    std::cout << mode << " | valid: " << (mode == "1") << std::endl;
+
+    if (mode == "k") // MODE k <password> / MODE 0 (remove password)
+    {
+        if (args.size() < 3)
+        {
+            std::string message = ":yourserver.com 461 " + admin->getNick() + " " + channel->getName() + " :Not enough parameters\r\n";
+            send(fd, message.c_str(), message.size(), 0);
+            return;
+        }
+
+        if (args[2] == "0")
         {
             channel->setPassword("");
             channel->setPasswordProtected(false);
@@ -82,7 +115,7 @@ void Server::mode(int fd, std::vector<std::string> args)
         }
         else
         {
-            channel->setPassword(args[1]);
+            channel->setPassword(args[2]);
             channel->setPasswordProtected(true);
             std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :Password set\r\n";
             send(fd, message.c_str(), message.size(), 0);
@@ -90,15 +123,22 @@ void Server::mode(int fd, std::vector<std::string> args)
         return;
     }
 
-    if (args[0] == "t") // MODE t +/-(topic restricted)
+    if (mode == "t") // MODE t +/-(topic restricted)
     {
-        if (args[1] == "+")
+        if (args.size() < 3)
+        {
+            std::string message = ":yourserver.com 461 " + admin->getNick() + " " + channel->getName() + " :Not enough parameters\r\n";
+            send(fd, message.c_str(), message.size(), 0);
+            return;
+        }
+
+        if (args[2] == "+")
         {
             channel->setTopicRestricted(true);
             std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :Topic restricted mode set\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
-        else if (args[1] == "-")
+        else if (args[2] == "-")
         {
             channel->setTopicRestricted(false);
             std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :Topic restricted mode unset\r\n";
@@ -107,9 +147,18 @@ void Server::mode(int fd, std::vector<std::string> args)
         return;
     }
 
-    if (args[0] == "l") // MODE l <limit> / MODE 0 (remove limit)
+    if (mode == "l") // MODE l <limit> / MODE 0 (remove limit)
     {
-        if (args[1] == "0")
+                std::cout << "attempted invite only" << std::endl;
+
+        if (args.size() < 3)
+        {
+            std::string message = ":yourserver.com 461 " + admin->getNick() + " " + channel->getName() + " :Not enough parameters\r\n";
+            send(fd, message.c_str(), message.size(), 0);
+            return;
+        }
+
+        if (args[2] == "0")
         {
             channel->setisLimited(false);
             std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :User limit removed\r\n";
@@ -117,23 +166,31 @@ void Server::mode(int fd, std::vector<std::string> args)
         }
         else
         {
-            int limit = atoi(args[1].c_str());
+            int limit = atoi(args[2].c_str());
             channel->setisLimited(true);
             channel->setLimit(limit);
-            std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :User limit set to " + args[1] + "\r\n";
+            std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :User limit set to " + args[2] + "\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
         return;
     }
-    if (args[0] == "i") // MODE i +/-(invite only)
+
+    if (mode == "i") // MODE i +/-(invite only)
     {
-        if (args[1] == "+")
+        if (args.size() < 3)
+        {
+            std::string message = ":yourserver.com 461 " + admin->getNick() + " " + channel->getName() + " :Not enough parameters\r\n";
+            send(fd, message.c_str(), message.size(), 0);
+            return;
+        }
+
+        if (args[2] == "+")
         {
             channel->setInviteOnly(true);
             std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :Invite only mode set\r\n";
             send(fd, message.c_str(), message.size(), 0);
         }
-        else if (args[1] == "-")
+        else if (args[2] == "-")
         {
             channel->setInviteOnly(false);
             std::string message = ":yourserver.com 324 " + admin->getNick() + " " + channel->getName() + " :Invite only mode unset\r\n";
@@ -141,24 +198,32 @@ void Server::mode(int fd, std::vector<std::string> args)
         }
         return;
     }
-    if (args[0] == "o") // MODE o <nickname> (give operator privileges)
+
+    if (mode == "o") // MODE o <nickname> (give operator privileges)
     {
-        if (!channel->isUser(args[1]))
+        if (args.size() < 3)
         {
-            std::string message = ":yourserver.com 441 " + admin->getNick() + " " + channel->getName() + " " + args[1] + " :Client is not in the channel\r\n";
+            std::string message = ":yourserver.com 461 " + admin->getNick() + " " + channel->getName() + " :Not enough parameters\r\n";
             send(fd, message.c_str(), message.size(), 0);
             return;
         }
-        channel->addAdmin(args[1]);
-        std::string message = ":yourserver.com 381 " + admin->getNick() + " " + channel->getName() + " :Operator privileges given to " + args[1] + "\r\n";
+
+        if (!channel->isUser(args[2]))
+        {
+            std::string message = ":yourserver.com 441 " + admin->getNick() + " " + channel->getName() + " " + args[2] + " :Client is not in the channel\r\n";
+            send(fd, message.c_str(), message.size(), 0);
+            return;
+        }
+        channel->addAdmin(args[2]);
+        std::string message = ":yourserver.com 381 " + admin->getNick() + " " + channel->getName() + " :Operator privileges given to " + args[2] + "\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
-        // Handle unknown mode requests
+
+    // Handle unknown mode requests
     std::string unknown_mode = ":yourserver.com 472 " + admin->getNick() + " " + channel->getName() + " :Unknown mode flag\r\n";
     send(fd, unknown_mode.c_str(), unknown_mode.size(), 0);
 }
-
 // /kick <channelname> <nickname>
 void Server::kick(int fd, std::vector<std::string> args)
 {
