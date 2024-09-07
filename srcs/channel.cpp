@@ -71,7 +71,6 @@ int Channel::getClientIndex(std::string nick)
  */
 int Channel::KickUser(std::string nick)
 {
-
     if (!isUser(nick))
     {
         return -1;
@@ -86,7 +85,6 @@ int Channel::KickUser(std::string nick)
     users.erase(users.begin() + index);
     return 0;
 }
-
 void Channel::addUser(Client user)
 {
     this->users.push_back(user);

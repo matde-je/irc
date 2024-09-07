@@ -119,7 +119,7 @@ run: re
 		@./ircserv 4555 123
 
 mem: re	
-		valgrind --leak-check=full --log-file="val.log" ./ircserv 4555 123
+		valgrind --leak-check=full --show-leak-kinds=all --log-file="val.log" ./ircserv 4555 123
 
 user:
 		nc localhost 4555

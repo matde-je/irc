@@ -144,12 +144,12 @@ void Client::setName(std::string name) {this->name = name;}
 void Client::setNick(std::string nick) {this->nick = nick;}
 void Client::setPass(bool pass) {this->pass = pass;}
 void Client::addChannel(std::string channel) {channels.push_back(channel);}
-void Client::removeChannel(std::string channel) {
-    for (size_t i = 0; i < channels.size(); i++) {
-        if (channels[i] == channel) {
-            channels.erase(channels.begin() + i);
-            return;
-        }
+void Client::removeChannel(const std::string& channelName)
+{
+    std::vector<std::string>::iterator it = std::find(channels.begin(), channels.end(), channelName);
+    if (it != channels.end())
+    {
+        channels.erase(it);
     }
 }
 void Client::addInvite(std::string invite) {invites.push_back(invite);}

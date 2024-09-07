@@ -51,7 +51,7 @@ class Client {
         void setNick(std::string nick);
         void setPass(bool pass);
         void addChannel(std::string channel);
-        void removeChannel(std::string channel);
+        void removeChannel(const std::string& channelName);
         void addInvite(std::string invites);
         void removeInvite(std::string invite);
 
