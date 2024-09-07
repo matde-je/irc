@@ -61,7 +61,7 @@ void Server::topic(int fd, std::vector<std::string> args)
         send((*it).getFd(), topic_message.c_str(), topic_message.size(), 0);
     }
 }
-// /mode <channel> <mode> <args>
+
 // /mode <channel> <mode> <args>
 void Server::mode(int fd, std::vector<std::string> args)
 {
@@ -90,12 +90,6 @@ void Server::mode(int fd, std::vector<std::string> args)
     std::string mode = args[1];
     mode.erase(0, mode.find_first_not_of(" \t\n\r\f\v"));
     mode.erase(mode.find_last_not_of(" \t\n\r\f\v") + 1);
-
-    for(size_t i = 0; i < args.size(); i++)
-    {
-        std::cout << "args[" << i << "] = '" << args[i] << "'" << std::endl;
-    }
-    std::cout << mode << " | valid: " << (mode == "1") << std::endl;
 
     if (mode == "k") // MODE k <password> / MODE 0 (remove password)
     {
