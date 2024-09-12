@@ -28,7 +28,7 @@ std::string Channel::getName()
     return this->name;
 }
 
-void Channel::setName(std::string)
+void Channel::setName(std::string name)
 {
     this->name = name;
 }
