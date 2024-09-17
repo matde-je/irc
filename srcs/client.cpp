@@ -19,12 +19,31 @@ std::string Server::get_nick(int fd) {
 void Server::nick(int fd, std::vector<std::string> args){
     if (has_pass(fd) == 1) {return ;}
     if (args.size() == 1) {
+        if (args[0].length() < 2) {
+            send_error(fd, "432 ERR_ERRONEUSNICKNAME " + args[0] + " :Nickname too short");
+            return ;
+        }
+        if (args[0].length() > 10) {
+            send_error(fd, "432 ERR_ERRONEUSNICKNAME " + args[0] + " :Nickname too long");
+            return ;
+        }
+        for (size_t i = 0; i < clients.size(); i++) {
+            if (clients[i].getNick() == args[0]) {
+                send_error(fd, "433 ERR_NICKNAMEINUSE " + args[0] + " :Nickname is already in use");
+                return ;
+            }
+        }
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].getFd() == fd) {
                 clients[i].setNick(args[0]);
                 std::cout << "Client " << fd << ": changed nick to " << args[0] << std::endl;
                 return ;
             }}}
+}
+
+void Server::send_error(int fd, std::string str) {
+    std::string message = ":IRC " + str + "\r\n";
+    send(fd, message.c_str(), message.length(), 0);
 }
 
 //USER <username> <mode> <unused> <realname>

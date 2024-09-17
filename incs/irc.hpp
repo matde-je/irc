@@ -87,6 +87,7 @@ class Server {
         void invite(int fd, std::vector<std::string> args);
         void msg(int fd, std::vector<std::string> args);
         void join(int fd, std::vector<std::string> args);
+        void send_error(int fd, std::string str);
         void nick(int fd, std::vector<std::string> args);
         void user(int fd, std::vector<std::string> args);
         void pass(int fd, std::vector<std::string> args);
