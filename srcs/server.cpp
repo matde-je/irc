@@ -12,7 +12,6 @@ void Server::signal_handler(int signum) {
 }
 
 void Server::clear_client(int fd) {
-    
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].getFd() == fd)
             {clients.erase(clients.begin() + i); break ;}
@@ -40,11 +39,11 @@ void Server::new_client() {
     socklen_t csin_len = sizeof(csin);
     int fd = accept(socketfd, (struct sockaddr*)&csin, &csin_len);
     if (fd == -1) {std::cerr << "Accept failed.\n"; return;}
-if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-    std::cerr << "Failed to set non-blocking mode for client socket.\n";
-    close(fd);
-    return;
-}
+    if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+        std::cerr << "Failed to set non-blocking mode for client socket.\n";
+        close(fd);
+        return;
+    }
     std::cout << "New client " << fd <<  " from " << inet_ntoa(csin.sin_addr) << ": " << ntohs(csin.sin_port) << std::endl;
 
     struct pollfd poll; 
@@ -60,35 +59,37 @@ if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
 }
 
 void Server::parse(int fd, const char *buf) {
-    std::string str = buf;
-    if (!str.empty() && str[str.length() - 1] == '\n') 
+    partial += buf;
+    std::string str = partial;
+    if (!str.empty() && str[str.length() - 1] == '\n') {
         str.erase(str.length() - 1); 
-    if (!str.empty() && str[str.length() - 1] == '\r') 
-        str.erase(str.length() - 1); 
-    std::stringstream ss(str);
-    std::string command;
-    while (std::getline(ss, command, '\n')) {
-        if (!command.empty() && command[command.length() - 1] == '\r') 
-            command.erase(command.length() - 1);
-        size_t start = command.find_first_not_of("\t\v "); 
-        if (start == std::string::npos) 
-            continue;
-        std::string cmd = command.substr(start);
-        std::vector<std::string> arglist;
-        size_t end = cmd.find_first_of(" ");
-        if (end != std::string::npos) {
-            std::string args = cmd.substr(end + 1);
-            std::stringstream argStream(args);
-            std::string arg;
-            while (std::getline(argStream, arg, ' ')) {
-                if (!arg.empty())
-                    arglist.push_back(arg); }
-            send_cmd(fd, cmd.substr(0, end), arglist);
-        } else {
-            send_cmd(fd, cmd, arglist);
+        if (!str.empty() && str[str.length() - 1] == '\r') 
+            str.erase(str.length() - 1); 
+        std::stringstream ss(str);
+        std::string command;
+        while (std::getline(ss, command, '\n')) {
+            if (!command.empty() && command[command.length() - 1] == '\r') 
+                command.erase(command.length() - 1);
+            size_t start = command.find_first_not_of("\t\v "); 
+            if (start == std::string::npos) 
+                continue;
+            std::string cmd = command.substr(start);
+            std::vector<std::string> arglist;
+            size_t end = cmd.find_first_of(" ");
+            if (end != std::string::npos) {
+                std::string args = cmd.substr(end + 1);
+                std::stringstream argStream(args);
+                std::string arg;
+                while (std::getline(argStream, arg, ' ')) {
+                    if (!arg.empty())
+                        arglist.push_back(arg); }
+                send_cmd(fd, cmd.substr(0, end), arglist);
+            } else {
+                send_cmd(fd, cmd, arglist);
+            }
         }
-    }
-}
+        partial.clear();
+}}
 
 
 void Server::loop() {
@@ -117,7 +118,6 @@ void Server::loop() {
 
 
 void Server::init_socket() {
-
     socketfd = socket(AF_INET, SOCK_STREAM, 0); //create server socket
 	if (socketfd == -1) {std::cerr << "Creation of socket failed.\n"; return;}
     struct sockaddr_in	sin;

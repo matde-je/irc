@@ -22,6 +22,7 @@
 
 #include <map>
 
+
 //info about each client
 class Client {
     private :
@@ -61,6 +62,7 @@ class Client {
 
 class Server {
     public :
+        std::string partial;
         std::vector<Channel> channels;
         int port;
         std::map<int, std::string> client_buffers;
@@ -85,9 +87,13 @@ class Server {
         void mode(int fd, std::vector<std::string> args);
         void kick(int fd, std::vector<std::string> args);
         void invite(int fd, std::vector<std::string> args);
+        void who(int fd, std::vector<std::string> args);
         void msg(int fd, std::vector<std::string> args);
         void join(int fd, std::vector<std::string> args);
-        void send_error(int fd, std::string str);
+        void send_message(int fd, std::string str);
+        void handle_cap_ls(int fd);
+        void handle_cap_req(int fd, const std::string& capabilities);
+        void handle_cap_end(int fd);
         void nick(int fd, std::vector<std::string> args);
         void user(int fd, std::vector<std::string> args);
         void pass(int fd, std::vector<std::string> args);

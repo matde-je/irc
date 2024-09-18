@@ -7,41 +7,61 @@ Client::Client() {pass = false;}
 std::string Server::get_nick(int fd) {
     for (size_t i = 0; i < clients.size(); i++) {
         if (clients[i].getFd() == fd) {
-            if (!clients[i].getNick().empty())
+            if (!clients[i].getNick().empty()) {
                 return clients[i].getNick();
+            }
     }}
     std::stringstream ss;
     ss << fd;
     return ("Client " + ss.str());
 }
 
-//  /nick <nickname>
+ ///nick <nickname>
 void Server::nick(int fd, std::vector<std::string> args){
     if (has_pass(fd) == 1) {return ;}
     if (args.size() == 1) {
-        if (args[0].length() < 2) {
-            send_error(fd, "432 ERR_ERRONEUSNICKNAME " + args[0] + " :Nickname too short");
-            return ;
-        }
-        if (args[0].length() > 10) {
-            send_error(fd, "432 ERR_ERRONEUSNICKNAME " + args[0] + " :Nickname too long");
-            return ;
-        }
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].getNick() == args[0]) {
-                send_error(fd, "433 ERR_NICKNAMEINUSE " + args[0] + " :Nickname is already in use");
+                send_message(fd, "433 " + args[0] + " :Nickname is already in use");
                 return ;
             }
         }
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].getFd() == fd) {
                 clients[i].setNick(args[0]);
+                std::cout << clients[i].getNick() << std::endl;
+                send_message(fd, "001 " + args[0] + " :Nickname successfully changed");
                 std::cout << "Client " << fd << ": changed nick to " << args[0] << std::endl;
                 return ;
             }}}
 }
 
-void Server::send_error(int fd, std::string str) {
+void Server::who(int fd, std::vector<std::string> args) {
+    std::string channel_name = args[0];
+    bool channel_found = false;
+    for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        Client& client = *it;
+        const std::vector<std::string>& channels = client.getChannel(); 
+        for (std::vector<std::string>::const_iterator ch_it = channels.begin(); ch_it != channels.end(); ++ch_it) {
+            const std::string& channel = *ch_it;  
+            if (channel == channel_name) {
+                channel_found = true;
+                std::string response = ":IRC 352 " + client.getNick() + " " + channel_name + " 0 0 " + client.getNick() + " H :0 Unknown\r\n";
+                send(fd, response.c_str(), response.size(), 0);
+                break ; 
+            }
+        }
+    }
+    if (!channel_found) {
+        send_message(fd, "403 " + channel_name + " :No such channel");
+    } else {
+        std::string end_response = ":IRC 315 " + channel_name + " :End of WHO list\r\n";
+        send(fd, end_response.c_str(), end_response.size(), 0);
+    }
+}
+
+
+void Server::send_message(int fd, std::string str) {
     std::string message = ":IRC " + str + "\r\n";
     send(fd, message.c_str(), message.length(), 0);
 }
@@ -99,17 +119,34 @@ int    Server::is_authentic(int fd) {
     return 0;
 }
 
+void Server::handle_cap_ls(int fd) {
+    // No capabilities supported
+    std::string response = ":server CAP * LS :\r\n";
+    send(fd, response.c_str(), response.size(), 0);
+    
+    // Send CAP END to indicate no more capabilities
+    std::string end_response = ":server CAP * END\r\n";
+    send(fd, end_response.c_str(), end_response.size(), 0);
+}
+
 std::string to_uppercase(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
     return str;
 }
 
 int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) {
+    //std::cout << cmd << std::endl;
     cmd = to_uppercase(cmd);
     if (cmd == "PASS"|| cmd == "/PASS") 
         {pass(fd, args); return 1;}
     else if (cmd == "USER"|| cmd == "/USER")
         {user(fd, args); return 1;}
+    else if (cmd == "CAP") {
+        if (args[0] == "LS")
+            handle_cap_ls(fd);
+        return 1;}
+    else if (cmd == "WHO")
+        {who(fd, args); return 1;}
     else if (cmd == "NICK" || cmd == "/NICK")
         {nick(fd, args); return 1;}
     else if (cmd == "TOPIC" || cmd == "/TOPIC")
@@ -150,7 +187,7 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
 int Client::getFd() {return fd;}
 std::string Client::getIp() {return ip;}
 std::string Client::getName() {return name;}
-std::string Client::getNick() {return nick;}
+std::string Client::getNick() {return this->nick;}
 bool Client::getPass() {return pass;}
 std::vector<std::string> Client::getChannel() {return channels;}
 std::vector<std::string> Client::getInvites() {return invites;}
