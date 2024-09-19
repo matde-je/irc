@@ -37,6 +37,8 @@ void Server::nick(int fd, std::vector<std::string> args){
 }
 
 void Server::who(int fd, std::vector<std::string> args) {
+    if (args.size() < 1)
+        return ;
     std::string channel_name = args[0];
     bool channel_found = false;
     for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it) {

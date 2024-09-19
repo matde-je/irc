@@ -62,9 +62,6 @@ void Server::parse(int fd, const char *buf) {
     partial += buf;
     std::string str = partial;
     if (!str.empty() && str[str.length() - 1] == '\n') {
-        str.erase(str.length() - 1); 
-        if (!str.empty() && str[str.length() - 1] == '\r') 
-            str.erase(str.length() - 1); 
         std::stringstream ss(str);
         std::string command;
         while (std::getline(ss, command, '\n')) {
