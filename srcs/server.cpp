@@ -20,6 +20,15 @@ void Server::clear_client(int fd) {
         if (fds[i].fd == fd)
             {fds.erase(fds.begin() + i); break ;}
     }
+    for (size_t i = 0; i < channels.size(); i++){
+        for (size_t j = 0; j < channels[i].getUsers().size(); j++)
+        {
+            if (clients[j].getFd() == fd){
+                channels[i].KickUser(clients[j].getNick());
+            }
+        }
+        
+    }
 }
 
 //if you close the file descriptor via the client, you do not need to close it again in fds vector
