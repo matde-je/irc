@@ -292,9 +292,9 @@ void Server::kick(int fd, std::vector<std::string> args)
 void Server::invite(int fd, std::vector<std::string> args)
 {
     // Ensure the user is authenticated and has provided exactly one argument
-    if (is_authentic(fd) != 0 || args.size() != 1)
+    if (is_authentic(fd) != 0 || args.size() != 2)
     {
-        std::string message = ":IRC 461 " + getClientFromFD(fd)->getNick() + " INVITE :Not enough parameters\r\n";
+        std::string message = ":IRC 461 " + getClientFromFD(fd)->getNick() + " INVITE : usage: /INVITE <channelname> <username>\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
@@ -316,10 +316,10 @@ void Server::invite(int fd, std::vector<std::string> args)
         return;
     }
 
-    Client *invitee = getClientFromNick(args[0]);
+    Client *invitee = getClientFromNick(args[1]);
     if (invitee == NULL)
     {
-        std::string message = ":IRC 401 " + inviter->getNick() + " " + args[0] + " :No such nick\r\n";
+        std::string message = ":IRC 401 " + inviter->getNick() + " " + args[1] + " :No such nick\r\n";
         send(fd, message.c_str(), message.size(), 0);
         return;
     }
