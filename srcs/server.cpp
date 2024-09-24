@@ -93,7 +93,7 @@ void Server::loop() {
     while (Server::signal == false) {
         if (poll(&fds[0], fds.size(), -1) == -1 && Server::signal == false) //block indefinitely until an event occurs 
             {std::cerr << "poll() failed.\n"; return;}
-        for (int i = 0; i < (int)fds.size(); i++) {
+        for (int i = (int)fds.size() - 1; i >= 0; i--) {
             if (fds[i].revents & POLLIN) {
                  //revents is updated by poll(), if read(pollin) bit is set in revents, revents can have multiple bits set, representing different types of event
                 if (fds[i].fd == socketfd) //POLLIN on the server socket file descriptor indicates that there is a new incoming connection, not new data

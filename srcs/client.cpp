@@ -29,9 +29,8 @@ void Server::nick(int fd, std::vector<std::string> args){
         for (size_t i = 0; i < clients.size(); i++) {
             if (clients[i].getFd() == fd) {
                 clients[i].setNick(args[0]);
-                std::cout << clients[i].getNick() << std::endl;
-                send_message(fd, "001 " + args[0] + " :Nickname successfully changed");
-                std::cout << "Client " << fd << ": changed nick to " << args[0] << std::endl;
+                send_message(fd, ":" + args[0] + " NICK " + args[0]);
+                send_message(fd, "001 " + args[0] + " :Welcome to the IRC server, " + args[0]);
                 return ;
             }}}
 }
@@ -48,7 +47,7 @@ void Server::who(int fd, std::vector<std::string> args) {
             const std::string& channel = *ch_it;  
             if (channel == channel_name) {
                 channel_found = true;
-                std::string response = ":IRC 352 " + client.getNick() + " " + channel_name + " 0 0 " + client.getNick() + " H :0 Unknown\r\n";
+                std::string response = ":server 352 " + client.getNick() + " " + channel_name + " 0 0 " + client.getNick() + " H :0 Unknown\r\n";
                 send(fd, response.c_str(), response.size(), 0);
                 break ; 
             }
@@ -57,15 +56,16 @@ void Server::who(int fd, std::vector<std::string> args) {
     if (!channel_found) {
         send_message(fd, "403 " + channel_name + " :No such channel");
     } else {
-        std::string end_response = ":IRC 315 " + channel_name + " :End of WHO list\r\n";
+        std::string end_response = ":server 315 " + channel_name + " :End of WHO list\r\n";
         send(fd, end_response.c_str(), end_response.size(), 0);
     }
 }
 
 
 void Server::send_message(int fd, std::string str) {
-    std::string message = ":IRC " + str + "\r\n";
+    std::string message = ":server " + str + "\r\n";
     send(fd, message.c_str(), message.length(), 0);
+    std::cout << "Sending message: " << message << std::endl;
 }
 
 //USER <username> <mode> <unused> <realname>
@@ -84,6 +84,9 @@ void Server::user(int fd, std::vector<std::string> args) {
                 return;
             }
         }
+    }
+    else {
+        send_message(fd, "Invalid number of args");
     }
 }
 
@@ -122,13 +125,15 @@ int    Server::is_authentic(int fd) {
 }
 
 void Server::handle_cap_ls(int fd) {
-    // No capabilities supported
-    std::string response = ":server CAP * LS :\r\n";
-    send(fd, response.c_str(), response.size(), 0);
-    
-    // Send CAP END to indicate no more capabilities
+    // Respond to the CAP LS request
+    std::string response = ":server CAP * LS : \r\n"; // Indicating no capabilities
+    send(fd, response.c_str(), response.length(), 0);
+}
+
+void Server::handle_cap_end(int fd) {
+    // Respond to CAP END
     std::string end_response = ":server CAP * END\r\n";
-    send(fd, end_response.c_str(), end_response.size(), 0);
+    send(fd, end_response.c_str(), end_response.length(), 0);
 }
 
 std::string to_uppercase(std::string str) {
@@ -144,8 +149,10 @@ int    Server::send_cmd(int fd, std::string cmd, std::vector<std::string> args) 
     else if (cmd == "USER"|| cmd == "/USER")
         {user(fd, args); return 1;}
     else if (cmd == "CAP") {
-        if (args[0] == "LS")
+        if (!args.empty() && args[0] == "LS")
             handle_cap_ls(fd);
+        if (!args.empty() && args[0] == "END")
+            handle_cap_end(fd);
         return 1;}
     else if (cmd == "WHO")
         {who(fd, args); return 1;}

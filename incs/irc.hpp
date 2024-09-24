@@ -65,7 +65,6 @@ class Server {
         std::string partial;
         std::vector<Channel> channels;
         int port;
-        std::map<int, std::string> client_buffers;
         std::string password;
         int socketfd;
         static bool signal;
@@ -92,7 +91,6 @@ class Server {
         void join(int fd, std::vector<std::string> args);
         void send_message(int fd, std::string str);
         void handle_cap_ls(int fd);
-        void handle_cap_req(int fd, const std::string& capabilities);
         void handle_cap_end(int fd);
         void nick(int fd, std::vector<std::string> args);
         void user(int fd, std::vector<std::string> args);

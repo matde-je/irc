@@ -4,7 +4,7 @@ void Server::msg(int fd, std::vector<std::string> args)
 {
     if (is_authentic(fd) != 0 || args.size() < 2)
     {
-        std::string error_message = ":IRC 411 " + getClientFromFD(fd)->getNick() + " :No recipient given\r\n";
+        std::string error_message = ":server 411 " + getClientFromFD(fd)->getNick() + " :No recipient given\r\n";
         send(fd, error_message.c_str(), error_message.size(), 0);
         return;
     }
@@ -27,7 +27,7 @@ void Server::msg(int fd, std::vector<std::string> args)
     Client* sender = getClientFromFD(fd);
     if (sender == NULL)
     {
-        std::string error_message = ":IRC 401 :Sender not found\r\n";
+        std::string error_message = ":server 401 :Sender not found\r\n";
         send(fd, error_message.c_str(), error_message.size(), 0);
         return;
     }
@@ -60,7 +60,7 @@ void Server::msg(int fd, std::vector<std::string> args)
     }
 
     // If recipient is neither a channel nor a user
-    std::string error_message = ":IRC 401 " + sender->getNick() + " " + recipient + " :No such nick/channel\r\n";
+    std::string error_message = ":server 401 " + sender->getNick() + " " + recipient + " :No such nick/channel\r\n";
     send(fd, error_message.c_str(), error_message.size(), 0);
 }
 
