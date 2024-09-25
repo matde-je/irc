@@ -12,22 +12,22 @@ void Server::signal_handler(int signum) {
 }
 
 void Server::clear_client(int fd) {
-    for (size_t i = 0; i < clients.size(); i++) {
-        if (clients[i].getFd() == fd)
-            {clients.erase(clients.begin() + i); break ;}
-    }
-    for (size_t i = 0; i < fds.size(); i++) {
-        if (fds[i].fd == fd)
-            {fds.erase(fds.begin() + i); break ;}
-    }
     for (size_t i = 0; i < channels.size(); i++){
         for (size_t j = 0; j < channels[i].getUsers().size(); j++)
         {
             if (clients[j].getFd() == fd){
                 channels[i].KickUser(clients[j].getNick());
+                break ;
             }
         }
-        
+    }
+    for (size_t i = 0; i < clients.size(); i++) {
+        if (clients[i].getFd() == fd) 
+            {clients.erase(clients.begin() + i); break ;}
+    }
+    for (size_t i = 0; i < fds.size(); i++) {
+        if (fds[i].fd == fd)
+            {fds.erase(fds.begin() + i); break ;}
     }
 }
 
@@ -112,8 +112,8 @@ void Server::loop() {
                     int r = recv(fds[i].fd, buf, 4096, 0); //receive new data from fd that changed
                     if (r <= 0) {
                         std::cout << get_nick(fds[i].fd) << ": went away\n";
-                        clear_client(fds[i].fd);
                         close(fds[i].fd);
+                        clear_client(fds[i].fd);
                     }
                     else {
                         buf[r] = '\0';

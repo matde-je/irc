@@ -125,13 +125,11 @@ int    Server::is_authentic(int fd) {
 }
 
 void Server::handle_cap_ls(int fd) {
-    // Respond to the CAP LS request
-    std::string response = ":server CAP * LS : \r\n"; // Indicating no capabilities
+    std::string response = ":server CAP * LS : \r\n"; //Indicating no capabilities
     send(fd, response.c_str(), response.length(), 0);
 }
 
 void Server::handle_cap_end(int fd) {
-    // Respond to CAP END
     std::string end_response = ":server CAP * END\r\n";
     send(fd, end_response.c_str(), end_response.length(), 0);
 }
